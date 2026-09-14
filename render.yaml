@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: prayer-log
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: >-
+      cd client && npm install && npm run build &&
+      cd ../server && npm install && npm run build && npx prisma migrate deploy
+    startCommand: node server/dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: ACCESS_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false

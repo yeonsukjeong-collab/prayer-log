@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  prayerRequests PrayerRequest[]
+  prayerTexts    PrayerText[]
+
+  @@map("prayer_log_members")
+}
+
+model PrayerRequest {
+  id           String    @id @default(uuid())
+  content      String
+  isAnswered   Boolean   @default(false)
+  answeredNote String?
+  answeredAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  authorId String
+  author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("prayer_log_prayer_requests")
+}
+
+model PrayerText {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  meetingDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId String
+  author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("prayer_log_prayer_texts")
+}
