@@ -57,7 +57,7 @@ Render 서비스에 아래 환경변수를 설정하세요 (기존 Postgres 인�
 
 Build Command:
 ```
-cd client && npm install && npm run build && cd ../server && npm install && npm run build && npx prisma migrate deploy
+cd client && npm install --include=dev && npm run build && cd ../server && npm install --include=dev && npm run build && npx prisma migrate deploy
 ```
 
 Start Command:
