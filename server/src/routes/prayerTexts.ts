@@ -18,6 +18,7 @@ const createSchema = z.object({
   title: z.string().trim().max(200).optional(),
   content: z.string().trim().min(1).max(10000),
   meetingDate: z.coerce.date().optional(),
+  authorId: z.string().uuid().optional(),
 });
 
 router.post("/", async (req, res) => {
@@ -25,6 +26,16 @@ router.post("/", async (req, res) => {
   if (!parsed.success) {
     res.status(400).json({ error: "내용을 입력해주세요." });
     return;
+  }
+
+  let authorId = req.userId!;
+  if (parsed.data.authorId && parsed.data.authorId !== req.userId) {
+    const target = await prisma.member.findUnique({ where: { id: parsed.data.authorId } });
+    if (!target) {
+      res.status(400).json({ error: "대상을 찾을 수 없습니다." });
+      return;
+    }
+    authorId = target.id;
   }
 
   const meetingDate = parsed.data.meetingDate ?? new Date();
@@ -35,7 +46,7 @@ router.post("/", async (req, res) => {
       title,
       content: parsed.data.content,
       meetingDate,
-      authorId: req.userId!,
+      authorId,
     },
     include: { author: { select: { id: true, name: true } } },
   });

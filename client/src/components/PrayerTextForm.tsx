@@ -1,13 +1,18 @@
 import { useState, type FormEvent } from "react";
+import { useAuth } from "../context/AuthContext";
+import type { Member } from "../types";
 import { toDateInputValue } from "../utils/date";
 
 interface Props {
-  onSubmit: (content: string, meetingDate?: string) => Promise<void>;
+  members: Member[];
+  onSubmit: (content: string, authorId?: string, meetingDate?: string) => Promise<void>;
 }
 
-export function PrayerTextForm({ onSubmit }: Props) {
+export function PrayerTextForm({ members, onSubmit }: Props) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
+  const [authorId, setAuthorId] = useState(user?.id ?? "");
   const [meetingDate, setMeetingDate] = useState(() => toDateInputValue(new Date()));
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,7 +22,7 @@ export function PrayerTextForm({ onSubmit }: Props) {
 
     setSubmitting(true);
     try {
-      await onSubmit(content.trim(), meetingDate || undefined);
+      await onSubmit(content.trim(), authorId || undefined, meetingDate || undefined);
       setContent("");
       setMeetingDate(toDateInputValue(new Date()));
       setOpen(false);
@@ -39,12 +44,27 @@ export function PrayerTextForm({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm">
-      <input
-        type="date"
-        value={meetingDate}
-        onChange={(e) => setMeetingDate(e.target.value)}
-        className="self-start rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
-      />
+      <div className="flex flex-wrap gap-2">
+        {members.length > 0 && (
+          <select
+            value={authorId}
+            onChange={(e) => setAuthorId(e.target.value)}
+            className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+          >
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <input
+          type="date"
+          value={meetingDate}
+          onChange={(e) => setMeetingDate(e.target.value)}
+          className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+        />
+      </div>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

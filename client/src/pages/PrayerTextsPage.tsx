@@ -24,8 +24,8 @@ export function PrayerTextsPage() {
     api.get<{ members: Member[] }>("/members").then((res) => setMembers(res.members));
   }, []);
 
-  async function handleCreate(content: string, meetingDate?: string) {
-    const res = await api.post<{ item: PrayerText }>("/prayer-texts", { content, meetingDate });
+  async function handleCreate(content: string, authorId?: string, meetingDate?: string) {
+    const res = await api.post<{ item: PrayerText }>("/prayer-texts", { content, authorId, meetingDate });
     setItems((prev) =>
       [res.item, ...prev].sort(
         (a, b) => new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime(),
@@ -62,7 +62,7 @@ export function PrayerTextsPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
-      <PrayerTextForm onSubmit={handleCreate} />
+      <PrayerTextForm members={members} onSubmit={handleCreate} />
       <MemberPeriodFilters
         members={members}
         memberId={filterMemberId}
