@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import { BulkPrayerRequestForm } from "../components/BulkPrayerRequestForm";
 import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
 import type { Member, PrayerRequest } from "../types";
@@ -23,6 +24,15 @@ export function PrayerRequestsPage() {
   async function handleCreate(content: string, authorId?: string) {
     const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", { content, authorId });
     setItems((prev) => [res.item, ...prev]);
+  }
+
+  async function handleBulkCreate(entries: { content: string; authorId: string }[]) {
+    const created: PrayerRequest[] = [];
+    for (const entry of entries) {
+      const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", entry);
+      created.push(res.item);
+    }
+    setItems((prev) => [...created, ...prev]);
   }
 
   async function handleToggleAnswered(id: string, isAnswered: boolean, answeredNote?: string | null) {
@@ -50,6 +60,7 @@ export function PrayerRequestsPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
       <PrayerRequestForm members={members} onSubmit={handleCreate} />
+      <BulkPrayerRequestForm members={members} onSubmit={handleBulkCreate} />
 
       {loading ? (
         <p className="text-center text-sm text-slate-400">불러오는 중...</p>
