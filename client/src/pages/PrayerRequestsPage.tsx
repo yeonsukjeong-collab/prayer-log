@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { BulkPrayerRequestForm } from "../components/BulkPrayerRequestForm";
-import { PrayerRequestFilters } from "../components/PrayerRequestFilters";
+import { MemberPeriodFilters } from "../components/MemberPeriodFilters";
 import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
 import { useAuth } from "../context/AuthContext";
@@ -79,7 +79,7 @@ export function PrayerRequestsPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
       <PrayerRequestForm members={members} onSubmit={handleCreate} />
       {user?.isAdmin && <BulkPrayerRequestForm members={members} onSubmit={handleBulkCreate} />}
-      <PrayerRequestFilters
+      <MemberPeriodFilters
         members={members}
         memberId={filterMemberId}
         onMemberChange={setFilterMemberId}

@@ -32,7 +32,7 @@ export function NavBar() {
           기도제목
         </NavLink>
         <NavLink to="/prayers" className={linkClass}>
-          대표기도문
+          릴레이 기도
         </NavLink>
       </nav>
     </header>

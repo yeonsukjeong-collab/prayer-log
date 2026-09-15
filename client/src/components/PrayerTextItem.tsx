@@ -12,11 +12,13 @@ export function PrayerTextItem({ item, onDelete }: Props) {
   const [expanded, setExpanded] = useState(false);
   const isOwner = user?.id === item.author.id;
 
-  const meetingDate = new Date(item.meetingDate).toLocaleDateString("ko-KR", {
+  const meetingDate = new Date(item.meetingDate);
+  const dateLabel = meetingDate.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+  const weekdayLabel = meetingDate.toLocaleDateString("ko-KR", { weekday: "short" });
 
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -24,12 +26,9 @@ export function PrayerTextItem({ item, onDelete }: Props) {
         className="flex w-full items-start justify-between gap-3 text-left"
         onClick={() => setExpanded((v) => !v)}
       >
-        <div>
-          <p className="font-semibold text-slate-800">{item.title}</p>
-          <p className="mt-1 text-xs text-slate-400">
-            {item.author.name} · {meetingDate}
-          </p>
-        </div>
+        <p className="text-sm font-bold text-blue-700">
+          {item.author.name} · {dateLabel} ({weekdayLabel})
+        </p>
         <span className="text-slate-400">{expanded ? "▲" : "▼"}</span>
       </button>
       {expanded && (

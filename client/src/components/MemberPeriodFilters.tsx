@@ -32,7 +32,7 @@ function rangeForPreset(preset: Exclude<Preset, "custom">): { start: string; end
   return { start: formatDate(start), end: formatDate(end) };
 }
 
-export function PrayerRequestFilters({
+export function MemberPeriodFilters({
   members,
   memberId,
   onMemberChange,

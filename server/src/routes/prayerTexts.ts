@@ -15,7 +15,7 @@ router.get("/", async (_req, res) => {
 });
 
 const createSchema = z.object({
-  title: z.string().trim().min(1).max(200),
+  title: z.string().trim().max(200).optional(),
   content: z.string().trim().min(1).max(10000),
   meetingDate: z.coerce.date().optional(),
 });
@@ -23,15 +23,18 @@ const createSchema = z.object({
 router.post("/", async (req, res) => {
   const parsed = createSchema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "제목과 내용을 입력해주세요." });
+    res.status(400).json({ error: "내용을 입력해주세요." });
     return;
   }
 
+  const meetingDate = parsed.data.meetingDate ?? new Date();
+  const title = parsed.data.title?.trim() || `릴레이 기도 ${meetingDate.toISOString().slice(0, 10)}`;
+
   const item = await prisma.prayerText.create({
     data: {
-      title: parsed.data.title,
+      title,
       content: parsed.data.content,
-      meetingDate: parsed.data.meetingDate ?? new Date(),
+      meetingDate,
       authorId: req.userId!,
     },
     include: { author: { select: { id: true, name: true } } },
