@@ -19,20 +19,15 @@ router.post("/login", async (req, res) => {
     return;
   }
 
-  if (parsed.data.password !== env.accessPassword) {
-    res.status(401).json({ error: "암호가 올바르지 않습니다." });
+  const member = await prisma.member.findUnique({ where: { name: parsed.data.name } });
+  if (!member || parsed.data.password !== env.accessPassword) {
+    res.status(401).json({ error: "이름 또는 암호가 올바르지 않습니다." });
     return;
   }
 
-  const member = await prisma.member.upsert({
-    where: { name: parsed.data.name },
-    update: {},
-    create: { name: parsed.data.name },
-  });
-
   const token = signSession({ userId: member.id });
   res.cookie(sessionCookie.name, token, sessionCookie.options);
-  res.json({ user: { id: member.id, name: member.name } });
+  res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader } });
 });
 
 router.post("/logout", (_req, res) => {
@@ -46,7 +41,7 @@ router.get("/me", requireAuth, async (req, res) => {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
-  res.json({ user: { id: member.id, name: member.name } });
+  res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader } });
 });
 
 export default router;

@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
-import type { PrayerRequest } from "../types";
+import { useAuth } from "../context/AuthContext";
+import type { Member, PrayerRequest } from "../types";
 
 export function PrayerRequestsPage() {
+  const { user } = useAuth();
   const [items, setItems] = useState<PrayerRequest[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,8 +18,13 @@ export function PrayerRequestsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleCreate(content: string) {
-    const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", { content });
+  useEffect(() => {
+    if (!user?.isLeader) return;
+    api.get<{ members: Member[] }>("/members").then((res) => setMembers(res.members));
+  }, [user?.isLeader]);
+
+  async function handleCreate(content: string, authorId?: string) {
+    const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", { content, authorId });
     setItems((prev) => [res.item, ...prev]);
   }
 
@@ -44,7 +52,7 @@ export function PrayerRequestsPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
-      <PrayerRequestForm onSubmit={handleCreate} />
+      <PrayerRequestForm members={members} onSubmit={handleCreate} />
 
       {loading ? (
         <p className="text-center text-sm text-slate-400">불러오는 중...</p>

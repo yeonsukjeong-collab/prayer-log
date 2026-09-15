@@ -10,7 +10,7 @@ interface Props {
 
 export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
   const { user } = useAuth();
-  const isOwner = user?.id === item.author.id;
+  const canManage = user?.id === item.author.id || user?.isLeader;
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [note, setNote] = useState(item.answeredNote ?? "");
 
@@ -40,7 +40,7 @@ export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
             </p>
           )}
         </div>
-        {isOwner && (
+        {canManage && (
           <div className="flex flex-col items-end gap-1">
             <button
               onClick={() => {

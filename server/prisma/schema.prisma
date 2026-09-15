@@ -10,6 +10,7 @@ datasource db {
 model Member {
   id        String   @id @default(uuid())
   name      String   @unique
+  isLeader  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   prayerRequests PrayerRequest[]

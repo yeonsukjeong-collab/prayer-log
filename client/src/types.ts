@@ -6,6 +6,12 @@ export interface AuthorSummary {
 export interface User {
   id: string;
   name: string;
+  isLeader: boolean;
+}
+
+export interface Member {
+  id: string;
+  name: string;
 }
 
 export interface PrayerRequest {

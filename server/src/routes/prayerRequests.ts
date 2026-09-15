@@ -16,6 +16,7 @@ router.get("/", async (_req, res) => {
 
 const createSchema = z.object({
   content: z.string().trim().min(1).max(2000),
+  authorId: z.string().uuid().optional(),
 });
 
 router.post("/", async (req, res) => {
@@ -25,8 +26,23 @@ router.post("/", async (req, res) => {
     return;
   }
 
+  let authorId = req.userId!;
+  if (parsed.data.authorId && parsed.data.authorId !== req.userId) {
+    const currentUser = await prisma.member.findUnique({ where: { id: req.userId } });
+    if (!currentUser?.isLeader) {
+      res.status(403).json({ error: "다른 사람 이름으로 등록할 권한이 없습니다." });
+      return;
+    }
+    const target = await prisma.member.findUnique({ where: { id: parsed.data.authorId } });
+    if (!target) {
+      res.status(400).json({ error: "대상을 찾을 수 없습니다." });
+      return;
+    }
+    authorId = target.id;
+  }
+
   const item = await prisma.prayerRequest.create({
-    data: { content: parsed.data.content, authorId: req.userId! },
+    data: { content: parsed.data.content, authorId },
     include: { author: { select: { id: true, name: true } } },
   });
   res.status(201).json({ item });
@@ -51,8 +67,11 @@ router.patch("/:id", async (req, res) => {
     return;
   }
   if (existing.authorId !== req.userId) {
-    res.status(403).json({ error: "본인이 작성한 기도제목만 수정할 수 있습니다." });
-    return;
+    const currentUser = await prisma.member.findUnique({ where: { id: req.userId } });
+    if (!currentUser?.isLeader) {
+      res.status(403).json({ error: "본인이 작성한 기도제목만 수정할 수 있습니다." });
+      return;
+    }
   }
 
   const { content, isAnswered, answeredNote } = parsed.data;
@@ -77,8 +96,11 @@ router.delete("/:id", async (req, res) => {
     return;
   }
   if (existing.authorId !== req.userId) {
-    res.status(403).json({ error: "본인이 작성한 기도제목만 삭제할 수 있습니다." });
-    return;
+    const currentUser = await prisma.member.findUnique({ where: { id: req.userId } });
+    if (!currentUser?.isLeader) {
+      res.status(403).json({ error: "본인이 작성한 기도제목만 삭제할 수 있습니다." });
+      return;
+    }
   }
 
   await prisma.prayerRequest.delete({ where: { id: req.params.id } });

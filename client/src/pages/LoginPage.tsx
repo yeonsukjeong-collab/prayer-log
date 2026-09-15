@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { ApiError } from "../api/client";
+import { MEMBER_NAMES } from "../constants";
 import { useAuth } from "../context/AuthContext";
+import { FontSizeControl } from "../components/FontSizeControl";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -11,12 +13,12 @@ export function LoginPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !password) return;
+    if (!name || !password) return;
 
     setSubmitting(true);
     setError(null);
     try {
-      await login(name.trim(), password);
+      await login(name, password);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "로그인에 실패했습니다.");
     } finally {
@@ -36,12 +38,20 @@ export function LoginPage() {
         onSubmit={handleSubmit}
         className="flex w-full max-w-xs flex-col gap-3 rounded-2xl bg-white p-6 shadow-sm"
       >
-        <input
+        <select
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="이름"
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
-        />
+        >
+          <option value="" disabled>
+            이름을 선택하세요
+          </option>
+          {MEMBER_NAMES.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
         <input
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -52,12 +62,13 @@ export function LoginPage() {
         {error && <p className="text-xs text-red-500">{error}</p>}
         <button
           type="submit"
-          disabled={submitting || !name.trim() || !password}
+          disabled={submitting || !name || !password}
           className="rounded-lg bg-brand-600 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           입장하기
         </button>
       </form>
+      <FontSizeControl />
     </div>
   );
 }

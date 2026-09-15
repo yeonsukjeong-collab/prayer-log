@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { FontSizeControl } from "./FontSizeControl";
 
 export function NavBar() {
   const { user, logout } = useAuth();
@@ -15,6 +16,7 @@ export function NavBar() {
         <span className="text-lg font-bold text-brand-700">목장 기도록</span>
         {user && (
           <div className="flex items-center gap-2">
+            <FontSizeControl />
             <span className="hidden text-sm text-slate-500 sm:inline">{user.name}</span>
             <button
               onClick={() => logout()}
