@@ -27,9 +27,14 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-brand-50 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-brand-50 px-4 py-8">
+      <img
+        src="/login-illustration.jpg"
+        alt="기도하는 자카르타 목장"
+        className="w-full max-w-md rounded-2xl shadow-md"
+      />
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold text-brand-700">목장 기도록</h1>
+        <h1 className="text-2xl font-bold text-brand-700">기도하는 자카르타 목장</h1>
         <p className="text-sm text-slate-600">
           우리 목장의 기도제목과 기도문을 함께 나누는 공간입니다.
         </p>
