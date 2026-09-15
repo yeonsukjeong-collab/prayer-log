@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import type { PrayerRequest } from "../types";
+import { formatDateWithWeekday, toDateInputValue } from "../utils/date";
 
 interface Props {
   item: PrayerRequest;
   onUpdate: (
     id: string,
-    data: { content?: string; isAnswered?: boolean; answeredNote?: string | null },
+    data: { content?: string; requestDate?: string; isAnswered?: boolean; answeredNote?: string | null },
   ) => Promise<void>;
   onDelete: (id: string) => void;
 }
@@ -40,20 +41,16 @@ export function PrayerRequestItem({ item, onUpdate, onDelete }: Props) {
 
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(item.content);
+  const [editDate, setEditDate] = useState(() => toDateInputValue(new Date(item.requestDate)));
   const [editAnswered, setEditAnswered] = useState(item.isAnswered);
   const [editNote, setEditNote] = useState(item.answeredNote ?? "");
   const [saving, setSaving] = useState(false);
 
-  const createdDate = new Date(item.createdAt);
-  const dateLabel = createdDate.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const weekdayLabel = createdDate.toLocaleDateString("ko-KR", { weekday: "short" });
+  const { dateLabel, weekdayLabel } = formatDateWithWeekday(new Date(item.requestDate));
 
   function startEditing() {
     setEditContent(item.content);
+    setEditDate(toDateInputValue(new Date(item.requestDate)));
     setEditAnswered(item.isAnswered);
     setEditNote(item.answeredNote ?? "");
     setEditing(true);
@@ -61,12 +58,13 @@ export function PrayerRequestItem({ item, onUpdate, onDelete }: Props) {
 
   async function handleSave() {
     const trimmed = editContent.trim();
-    if (!trimmed) return;
+    if (!trimmed || !editDate) return;
 
     setSaving(true);
     try {
       await onUpdate(item.id, {
         content: trimmed,
+        requestDate: editDate,
         isAnswered: editAnswered,
         answeredNote: editAnswered ? editNote.trim() || null : null,
       });
@@ -100,6 +98,12 @@ export function PrayerRequestItem({ item, onUpdate, onDelete }: Props) {
 
       {editing ? (
         <div className="mt-2 flex flex-col gap-2">
+          <input
+            type="date"
+            value={editDate}
+            onChange={(e) => setEditDate(e.target.value)}
+            className="self-start rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+          />
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
@@ -131,7 +135,7 @@ export function PrayerRequestItem({ item, onUpdate, onDelete }: Props) {
             </button>
             <button
               onClick={handleSave}
-              disabled={saving || !editContent.trim()}
+              disabled={saving || !editContent.trim() || !editDate}
               className="rounded-lg bg-brand-600 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
             >
               저장

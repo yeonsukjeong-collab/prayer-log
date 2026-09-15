@@ -23,6 +23,7 @@ model Member {
 model PrayerRequest {
   id           String    @id @default(uuid())
   content      String
+  requestDate  DateTime  @default(now())
   isAnswered   Boolean   @default(false)
   answeredNote String?
   answeredAt   DateTime?

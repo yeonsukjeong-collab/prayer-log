@@ -8,7 +8,7 @@ router.use(requireAuth);
 
 router.get("/", async (_req, res) => {
   const items = await prisma.prayerRequest.findMany({
-    orderBy: [{ isAnswered: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ isAnswered: "asc" }, { requestDate: "desc" }],
     include: { author: { select: { id: true, name: true } } },
   });
   res.json({ items });
@@ -17,6 +17,7 @@ router.get("/", async (_req, res) => {
 const createSchema = z.object({
   content: z.string().trim().min(1).max(2000),
   authorId: z.string().uuid().optional(),
+  requestDate: z.coerce.date().optional(),
 });
 
 router.post("/", async (req, res) => {
@@ -37,7 +38,11 @@ router.post("/", async (req, res) => {
   }
 
   const item = await prisma.prayerRequest.create({
-    data: { content: parsed.data.content, authorId },
+    data: {
+      content: parsed.data.content,
+      authorId,
+      requestDate: parsed.data.requestDate ?? new Date(),
+    },
     include: { author: { select: { id: true, name: true } } },
   });
   res.status(201).json({ item });
@@ -45,6 +50,7 @@ router.post("/", async (req, res) => {
 
 const updateSchema = z.object({
   content: z.string().trim().min(1).max(2000).optional(),
+  requestDate: z.coerce.date().optional(),
   isAnswered: z.boolean().optional(),
   answeredNote: z.string().trim().max(2000).nullable().optional(),
 });
@@ -69,11 +75,12 @@ router.patch("/:id", async (req, res) => {
     }
   }
 
-  const { content, isAnswered, answeredNote } = parsed.data;
+  const { content, requestDate, isAnswered, answeredNote } = parsed.data;
   const item = await prisma.prayerRequest.update({
     where: { id: req.params.id },
     data: {
       ...(content !== undefined ? { content } : {}),
+      ...(requestDate !== undefined ? { requestDate } : {}),
       ...(isAnswered !== undefined
         ? { isAnswered, answeredAt: isAnswered ? new Date() : null }
         : {}),

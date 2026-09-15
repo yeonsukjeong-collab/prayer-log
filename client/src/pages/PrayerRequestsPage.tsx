@@ -27,9 +27,17 @@ export function PrayerRequestsPage() {
     api.get<{ members: Member[] }>("/members").then((res) => setMembers(res.members));
   }, []);
 
-  async function handleCreate(content: string, authorId?: string) {
-    const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", { content, authorId });
-    setItems((prev) => [res.item, ...prev]);
+  async function handleCreate(content: string, authorId?: string, requestDate?: string) {
+    const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", {
+      content,
+      authorId,
+      requestDate,
+    });
+    setItems((prev) =>
+      [res.item, ...prev].sort(
+        (a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime(),
+      ),
+    );
   }
 
   async function handleBulkCreate(entries: { content: string; authorId: string }[]) {
@@ -43,13 +51,13 @@ export function PrayerRequestsPage() {
 
   async function handleUpdate(
     id: string,
-    data: { content?: string; isAnswered?: boolean; answeredNote?: string | null },
+    data: { content?: string; requestDate?: string; isAnswered?: boolean; answeredNote?: string | null },
   ) {
     const res = await api.patch<{ item: PrayerRequest }>(`/prayer-requests/${id}`, data);
     setItems((prev) =>
       [...prev.filter((i) => i.id !== id), res.item].sort((a, b) => {
         if (a.isAnswered !== b.isAnswered) return a.isAnswered ? 1 : -1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
       }),
     );
   }
@@ -65,9 +73,9 @@ export function PrayerRequestsPage() {
     const end = filterEndDate ? new Date(`${filterEndDate}T23:59:59`) : null;
     return items.filter((item) => {
       if (filterMemberId && item.author.id !== filterMemberId) return false;
-      const createdAt = new Date(item.createdAt);
-      if (start && createdAt < start) return false;
-      if (end && createdAt > end) return false;
+      const requestDate = new Date(item.requestDate);
+      if (start && requestDate < start) return false;
+      if (end && requestDate > end) return false;
       return true;
     });
   }, [items, filterMemberId, filterStartDate, filterEndDate]);

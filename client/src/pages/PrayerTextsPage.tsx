@@ -24,9 +24,22 @@ export function PrayerTextsPage() {
     api.get<{ members: Member[] }>("/members").then((res) => setMembers(res.members));
   }, []);
 
-  async function handleCreate(content: string) {
-    const res = await api.post<{ item: PrayerText }>("/prayer-texts", { content });
-    setItems((prev) => [res.item, ...prev]);
+  async function handleCreate(content: string, meetingDate?: string) {
+    const res = await api.post<{ item: PrayerText }>("/prayer-texts", { content, meetingDate });
+    setItems((prev) =>
+      [res.item, ...prev].sort(
+        (a, b) => new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime(),
+      ),
+    );
+  }
+
+  async function handleUpdate(id: string, data: { content?: string; meetingDate?: string }) {
+    const res = await api.patch<{ item: PrayerText }>(`/prayer-texts/${id}`, data);
+    setItems((prev) =>
+      [...prev.filter((i) => i.id !== id), res.item].sort(
+        (a, b) => new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime(),
+      ),
+    );
   }
 
   async function handleDelete(id: string) {
@@ -69,7 +82,7 @@ export function PrayerTextsPage() {
       ) : (
         <ul className="flex flex-col gap-2">
           {filteredItems.map((item) => (
-            <PrayerTextItem key={item.id} item={item} onDelete={handleDelete} />
+            <PrayerTextItem key={item.id} item={item} onUpdate={handleUpdate} onDelete={handleDelete} />
           ))}
         </ul>
       )}

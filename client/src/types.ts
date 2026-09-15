@@ -18,6 +18,7 @@ export interface Member {
 export interface PrayerRequest {
   id: string;
   content: string;
+  requestDate: string;
   isAnswered: boolean;
   answeredNote: string | null;
   answeredAt: string | null;

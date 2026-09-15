@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from "react";
+import { toDateInputValue } from "../utils/date";
 
 interface Props {
-  onSubmit: (content: string) => Promise<void>;
+  onSubmit: (content: string, meetingDate?: string) => Promise<void>;
 }
 
 export function PrayerTextForm({ onSubmit }: Props) {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
+  const [meetingDate, setMeetingDate] = useState(() => toDateInputValue(new Date()));
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
@@ -15,8 +17,9 @@ export function PrayerTextForm({ onSubmit }: Props) {
 
     setSubmitting(true);
     try {
-      await onSubmit(content.trim());
+      await onSubmit(content.trim(), meetingDate || undefined);
       setContent("");
+      setMeetingDate(toDateInputValue(new Date()));
       setOpen(false);
     } finally {
       setSubmitting(false);
@@ -36,6 +39,12 @@ export function PrayerTextForm({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm">
+      <input
+        type="date"
+        value={meetingDate}
+        onChange={(e) => setMeetingDate(e.target.value)}
+        className="self-start rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+      />
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

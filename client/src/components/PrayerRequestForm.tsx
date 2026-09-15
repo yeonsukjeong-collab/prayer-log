@@ -1,16 +1,18 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 import type { Member } from "../types";
+import { toDateInputValue } from "../utils/date";
 
 interface Props {
   members: Member[];
-  onSubmit: (content: string, authorId?: string) => Promise<void>;
+  onSubmit: (content: string, authorId?: string, requestDate?: string) => Promise<void>;
 }
 
 export function PrayerRequestForm({ members, onSubmit }: Props) {
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [authorId, setAuthorId] = useState(user?.id ?? "");
+  const [requestDate, setRequestDate] = useState(() => toDateInputValue(new Date()));
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,8 +30,9 @@ export function PrayerRequestForm({ members, onSubmit }: Props) {
 
     setSubmitting(true);
     try {
-      await onSubmit(trimmed, authorId || undefined);
+      await onSubmit(trimmed, authorId || undefined, requestDate || undefined);
       setContent("");
+      setRequestDate(toDateInputValue(new Date()));
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
@@ -40,7 +43,7 @@ export function PrayerRequestForm({ members, onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {members.length > 0 && (
           <select
             value={authorId}
@@ -54,6 +57,12 @@ export function PrayerRequestForm({ members, onSubmit }: Props) {
             ))}
           </select>
         )}
+        <input
+          type="date"
+          value={requestDate}
+          onChange={(e) => setRequestDate(e.target.value)}
+          className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+        />
         <button
           type="submit"
           disabled={submitting || !content.trim()}
