@@ -2,12 +2,37 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
+import { endOfDayExclusive } from "../utils/date.js";
 
 const router = Router();
 router.use(requireAuth);
 
-router.get("/", async (_req, res) => {
+const listQuerySchema = z.object({
+  authorId: z.string().uuid().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+});
+
+router.get("/", async (req, res) => {
+  const parsed = listQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid query" });
+    return;
+  }
+  const { authorId, startDate, endDate } = parsed.data;
+
   const items = await prisma.prayerRequest.findMany({
+    where: {
+      ...(authorId ? { authorId } : {}),
+      ...(startDate || endDate
+        ? {
+            requestDate: {
+              ...(startDate ? { gte: startDate } : {}),
+              ...(endDate ? { lt: endOfDayExclusive(endDate) } : {}),
+            },
+          }
+        : {}),
+    },
     orderBy: [{ isAnswered: "asc" }, { requestDate: "desc" }],
     include: { author: { select: { id: true, name: true } } },
   });

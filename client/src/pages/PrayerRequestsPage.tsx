@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { BulkPrayerRequestForm } from "../components/BulkPrayerRequestForm";
 import { MemberPeriodFilters } from "../components/MemberPeriodFilters";
@@ -6,6 +6,7 @@ import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
 import { useAuth } from "../context/AuthContext";
 import type { Member, PrayerRequest } from "../types";
+import { rangeForPreset, type PeriodPreset } from "../utils/date";
 
 export function PrayerRequestsPage() {
   const { user } = useAuth();
@@ -13,75 +14,65 @@ export function PrayerRequestsPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMemberId, setFilterMemberId] = useState("");
-  const [filterStartDate, setFilterStartDate] = useState("");
-  const [filterEndDate, setFilterEndDate] = useState("");
+  const [preset, setPreset] = useState<PeriodPreset>("1w");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
 
-  useEffect(() => {
-    api
-      .get<{ items: PrayerRequest[] }>("/prayer-requests")
+  const { start: rangeStart, end: rangeEnd } = useMemo(() => {
+    if (preset === "custom") return { start: customStartDate, end: customEndDate };
+    return rangeForPreset(preset);
+  }, [preset, customStartDate, customEndDate]);
+
+  const fetchItems = useCallback(() => {
+    const params = new URLSearchParams();
+    if (filterMemberId) params.set("authorId", filterMemberId);
+    if (rangeStart) params.set("startDate", rangeStart);
+    if (rangeEnd) params.set("endDate", rangeEnd);
+    const query = params.toString();
+
+    setLoading(true);
+    return api
+      .get<{ items: PrayerRequest[] }>(`/prayer-requests${query ? `?${query}` : ""}`)
       .then((res) => setItems(res.items))
       .finally(() => setLoading(false));
-  }, []);
+  }, [filterMemberId, rangeStart, rangeEnd]);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   useEffect(() => {
     api.get<{ members: Member[] }>("/members").then((res) => setMembers(res.members));
   }, []);
 
   async function handleCreate(content: string, authorId?: string, requestDate?: string) {
-    const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", {
-      content,
-      authorId,
-      requestDate,
-    });
-    setItems((prev) =>
-      [res.item, ...prev].sort(
-        (a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime(),
-      ),
-    );
+    await api.post("/prayer-requests", { content, authorId, requestDate });
+    await fetchItems();
   }
 
   async function handleBulkCreate(entries: { content: string; authorId: string }[]) {
-    const created: PrayerRequest[] = [];
     for (const entry of entries) {
-      const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", entry);
-      created.push(res.item);
+      await api.post("/prayer-requests", entry);
     }
-    setItems((prev) => [...created, ...prev]);
+    await fetchItems();
   }
 
   async function handleUpdate(
     id: string,
     data: { content?: string; requestDate?: string; isAnswered?: boolean; answeredNote?: string | null },
   ) {
-    const res = await api.patch<{ item: PrayerRequest }>(`/prayer-requests/${id}`, data);
-    setItems((prev) =>
-      [...prev.filter((i) => i.id !== id), res.item].sort((a, b) => {
-        if (a.isAnswered !== b.isAnswered) return a.isAnswered ? 1 : -1;
-        return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
-      }),
-    );
+    await api.patch(`/prayer-requests/${id}`, data);
+    await fetchItems();
   }
 
   async function handleDelete(id: string) {
     if (!confirm("이 기도제목을 삭제할까요?")) return;
     await api.delete(`/prayer-requests/${id}`);
-    setItems((prev) => prev.filter((i) => i.id !== id));
+    await fetchItems();
   }
 
-  const filteredItems = useMemo(() => {
-    const start = filterStartDate ? new Date(`${filterStartDate}T00:00:00`) : null;
-    const end = filterEndDate ? new Date(`${filterEndDate}T23:59:59`) : null;
-    return items.filter((item) => {
-      if (filterMemberId && item.author.id !== filterMemberId) return false;
-      const requestDate = new Date(item.requestDate);
-      if (start && requestDate < start) return false;
-      if (end && requestDate > end) return false;
-      return true;
-    });
-  }, [items, filterMemberId, filterStartDate, filterEndDate]);
-
-  const active = filteredItems.filter((i) => !i.isAnswered);
-  const answered = filteredItems.filter((i) => i.isAnswered);
+  const active = items.filter((i) => !i.isAnswered);
+  const answered = items.filter((i) => i.isAnswered);
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
@@ -91,10 +82,12 @@ export function PrayerRequestsPage() {
         members={members}
         memberId={filterMemberId}
         onMemberChange={setFilterMemberId}
-        startDate={filterStartDate}
-        onStartDateChange={setFilterStartDate}
-        endDate={filterEndDate}
-        onEndDateChange={setFilterEndDate}
+        preset={preset}
+        onPresetChange={setPreset}
+        customStartDate={customStartDate}
+        onCustomStartDateChange={setCustomStartDate}
+        customEndDate={customEndDate}
+        onCustomEndDateChange={setCustomEndDate}
       />
 
       {loading ? (
@@ -107,7 +100,7 @@ export function PrayerRequestsPage() {
             </h2>
             {active.length === 0 ? (
               <p className="rounded-xl bg-white/60 p-4 text-center text-sm text-slate-400">
-                {items.length === 0 ? "아직 등록된 기도제목이 없어요." : "조건에 맞는 기도제목이 없어요."}
+                조건에 맞는 기도제목이 없어요.
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
