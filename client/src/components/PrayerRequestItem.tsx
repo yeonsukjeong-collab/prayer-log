@@ -8,6 +8,29 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
+function PrayerContent({ content, isAnswered }: { content: string; isAnswered: boolean }) {
+  const lines = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const isBulletList = lines.length > 0 && lines.every((line) => line.startsWith("-"));
+  const textClass = isAnswered ? "text-slate-500 line-through decoration-brand-400" : "text-slate-800";
+
+  if (isBulletList) {
+    return (
+      <ul className={`list-outside list-disc space-y-1 pl-5 text-sm ${textClass}`}>
+        {lines.map((line, i) => (
+          <li key={i} className="whitespace-pre-wrap">
+            {line.replace(/^-\s*/, "")}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return <p className={`whitespace-pre-wrap text-sm ${textClass}`}>{content}</p>;
+}
+
 export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
   const { user } = useAuth();
   const canManage = user?.id === item.author.id || user?.isLeader;
@@ -15,11 +38,12 @@ export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
   const [note, setNote] = useState(item.answeredNote ?? "");
 
   const createdDate = new Date(item.createdAt);
-  const createdAt = `${createdDate.toLocaleDateString("ko-KR", {
+  const dateLabel = createdDate.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  })} (${createdDate.toLocaleDateString("ko-KR", { weekday: "short" })})`;
+  });
+  const weekdayLabel = createdDate.toLocaleDateString("ko-KR", { weekday: "short" });
 
   return (
     <li
@@ -29,12 +53,12 @@ export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
-          <p className={`whitespace-pre-wrap text-sm ${item.isAnswered ? "text-slate-500 line-through decoration-brand-400" : "text-slate-800"}`}>
-            {item.content}
+          <p className="text-sm font-bold text-blue-700">
+            {item.author.name} · {dateLabel} ({weekdayLabel})
           </p>
-          <p className="mt-2 text-xs text-slate-400">
-            {item.author.name} · {createdAt}
-          </p>
+          <div className="mt-2">
+            <PrayerContent content={item.content} isAnswered={item.isAnswered} />
+          </div>
           {item.isAnswered && item.answeredNote && (
             <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-brand-700">
               🙏 {item.answeredNote}
