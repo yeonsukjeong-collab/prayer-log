@@ -39,11 +39,11 @@ export function PrayerRequestsPage() {
     setItems((prev) => [...created, ...prev]);
   }
 
-  async function handleToggleAnswered(id: string, isAnswered: boolean, answeredNote?: string | null) {
-    const res = await api.patch<{ item: PrayerRequest }>(`/prayer-requests/${id}`, {
-      isAnswered,
-      answeredNote,
-    });
+  async function handleUpdate(
+    id: string,
+    data: { content?: string; isAnswered?: boolean; answeredNote?: string | null },
+  ) {
+    const res = await api.patch<{ item: PrayerRequest }>(`/prayer-requests/${id}`, data);
     setItems((prev) =>
       [...prev.filter((i) => i.id !== id), res.item].sort((a, b) => {
         if (a.isAnswered !== b.isAnswered) return a.isAnswered ? 1 : -1;
@@ -105,7 +105,7 @@ export function PrayerRequestsPage() {
                   <PrayerRequestItem
                     key={item.id}
                     item={item}
-                    onToggleAnswered={handleToggleAnswered}
+                    onUpdate={handleUpdate}
                     onDelete={handleDelete}
                   />
                 ))}
@@ -123,7 +123,7 @@ export function PrayerRequestsPage() {
                   <PrayerRequestItem
                     key={item.id}
                     item={item}
-                    onToggleAnswered={handleToggleAnswered}
+                    onUpdate={handleUpdate}
                     onDelete={handleDelete}
                   />
                 ))}

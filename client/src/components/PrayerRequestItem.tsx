@@ -4,7 +4,10 @@ import type { PrayerRequest } from "../types";
 
 interface Props {
   item: PrayerRequest;
-  onToggleAnswered: (id: string, isAnswered: boolean, answeredNote?: string | null) => void;
+  onUpdate: (
+    id: string,
+    data: { content?: string; isAnswered?: boolean; answeredNote?: string | null },
+  ) => Promise<void>;
   onDelete: (id: string) => void;
 }
 
@@ -31,11 +34,15 @@ function PrayerContent({ content, isAnswered }: { content: string; isAnswered: b
   return <p className={`whitespace-pre-wrap text-sm ${textClass}`}>{content}</p>;
 }
 
-export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
+export function PrayerRequestItem({ item, onUpdate, onDelete }: Props) {
   const { user } = useAuth();
   const canManage = user?.id === item.author.id || user?.isLeader;
-  const [showNoteInput, setShowNoteInput] = useState(false);
-  const [note, setNote] = useState(item.answeredNote ?? "");
+
+  const [editing, setEditing] = useState(false);
+  const [editContent, setEditContent] = useState(item.content);
+  const [editAnswered, setEditAnswered] = useState(item.isAnswered);
+  const [editNote, setEditNote] = useState(item.answeredNote ?? "");
+  const [saving, setSaving] = useState(false);
 
   const createdDate = new Date(item.createdAt);
   const dateLabel = createdDate.toLocaleDateString("ko-KR", {
@@ -45,17 +52,94 @@ export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
   });
   const weekdayLabel = createdDate.toLocaleDateString("ko-KR", { weekday: "short" });
 
+  function startEditing() {
+    setEditContent(item.content);
+    setEditAnswered(item.isAnswered);
+    setEditNote(item.answeredNote ?? "");
+    setEditing(true);
+  }
+
+  async function handleSave() {
+    const trimmed = editContent.trim();
+    if (!trimmed) return;
+
+    setSaving(true);
+    try {
+      await onUpdate(item.id, {
+        content: trimmed,
+        isAnswered: editAnswered,
+        answeredNote: editAnswered ? editNote.trim() || null : null,
+      });
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <li
       className={`rounded-xl border p-4 shadow-sm transition ${
         item.isAnswered ? "border-brand-100 bg-brand-50/60" : "border-slate-200 bg-white"
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <p className="text-sm font-bold text-blue-700">
-            {item.author.name} · {dateLabel} ({weekdayLabel})
-          </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-bold text-blue-700">
+          {item.author.name} · {dateLabel} ({weekdayLabel})
+        </p>
+        {canManage && !editing && (
+          <div className="flex shrink-0 gap-2 text-xs">
+            <button onClick={startEditing} className="text-slate-500 hover:text-brand-600">
+              수정
+            </button>
+            <button onClick={() => onDelete(item.id)} className="text-slate-400 hover:text-red-500">
+              삭제
+            </button>
+          </div>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="mt-2 flex flex-col gap-2">
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            rows={4}
+            className="resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
+          />
+          <label className="flex items-center gap-2 text-xs text-slate-600">
+            <input
+              type="checkbox"
+              checked={editAnswered}
+              onChange={(e) => setEditAnswered(e.target.checked)}
+            />
+            응답됨으로 표시
+          </label>
+          {editAnswered && (
+            <input
+              value={editNote}
+              onChange={(e) => setEditNote(e.target.value)}
+              placeholder="응답 내용을 간단히 적어주세요 (선택)"
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+            />
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setEditing(false)}
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-500"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || !editContent.trim()}
+              className="rounded-lg bg-brand-600 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            >
+              저장
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
           <div className="mt-2">
             <PrayerContent content={item.content} isAnswered={item.isAnswered} />
           </div>
@@ -64,53 +148,7 @@ export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
               🙏 {item.answeredNote}
             </p>
           )}
-        </div>
-        {canManage && (
-          <div className="flex flex-col items-end gap-1">
-            <button
-              onClick={() => {
-                if (item.isAnswered) {
-                  onToggleAnswered(item.id, false, null);
-                  setShowNoteInput(false);
-                } else {
-                  setShowNoteInput((v) => !v);
-                }
-              }}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${
-                item.isAnswered
-                  ? "bg-brand-600 text-white"
-                  : "border border-brand-300 text-brand-600 hover:bg-brand-50"
-              }`}
-            >
-              {item.isAnswered ? "응답됨" : "응답 표시"}
-            </button>
-            <button
-              onClick={() => onDelete(item.id)}
-              className="text-xs text-slate-400 hover:text-red-500"
-            >
-              삭제
-            </button>
-          </div>
-        )}
-      </div>
-      {showNoteInput && !item.isAnswered && (
-        <div className="mt-3 flex gap-2">
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="응답 내용을 간단히 적어주세요 (선택)"
-            className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
-          />
-          <button
-            onClick={() => {
-              onToggleAnswered(item.id, true, note || null);
-              setShowNoteInput(false);
-            }}
-            className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white"
-          >
-            확인
-          </button>
-        </div>
+        </>
       )}
     </li>
   );
