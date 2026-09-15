@@ -18,7 +18,7 @@ export function NavBar() {
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-lg shadow-sm">
               🙏
             </span>
-            <span className="text-lg font-extrabold text-slate-800">자카르타 목장</span>
+            <span className="text-[1.6875rem] font-extrabold text-slate-800">자카르타 목장</span>
           </div>
           {user && (
             <div className="flex flex-wrap items-center gap-2">
