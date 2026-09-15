@@ -38,9 +38,12 @@ export function BulkPrayerRequestForm({ members, onSubmit }: Props) {
   }
 
   async function handleSubmit() {
-    const entries = resolved.flatMap((g) =>
-      g.authorId ? g.items.map((content) => ({ content, authorId: g.authorId as string })) : [],
-    );
+    const entries = resolved
+      .filter((g) => g.authorId)
+      .map((g) => ({
+        content: g.items.map((item) => `- ${item}`).join("\n"),
+        authorId: g.authorId as string,
+      }));
     if (entries.length === 0) return;
 
     setSubmitting(true);
@@ -76,7 +79,9 @@ export function BulkPrayerRequestForm({ members, onSubmit }: Props) {
 
       {groups.length > 0 && (
         <div className="flex flex-col gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
-          <p className="text-xs font-semibold text-slate-500">미리보기 · 총 {totalItems}건</p>
+          <p className="text-xs font-semibold text-slate-500">
+            미리보기 · {resolved.length}명 · 항목 {totalItems}개 (각 사람당 기도제목 1건으로 등록됩니다)
+          </p>
           {resolved.map((g, i) => (
             <div key={i} className="text-xs">
               <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -123,10 +128,10 @@ export function BulkPrayerRequestForm({ members, onSubmit }: Props) {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={submitting || totalItems === 0 || hasUnresolved}
+          disabled={submitting || resolved.length === 0 || hasUnresolved}
           className="rounded-lg bg-brand-600 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
         >
-          {totalItems > 0 ? `${totalItems}건 한번에 등록` : "등록"}
+          {resolved.length > 0 ? `${resolved.length}명 기도제목 등록` : "등록"}
         </button>
       </div>
     </div>
