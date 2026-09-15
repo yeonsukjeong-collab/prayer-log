@@ -2,16 +2,40 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FontSizeControl } from "./FontSizeControl";
 
+function NavTab({ to, end, icon, label }: { to: string; end?: boolean; icon: string; label: string }) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `flex flex-1 flex-col items-center gap-1.5 border-b-[3px] pb-2 pt-1 transition ${
+          isActive ? "border-brand-600" : "border-transparent"
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <span
+            className={`flex h-11 w-11 items-center justify-center rounded-full text-xl shadow-sm transition ${
+              isActive ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-400"
+            }`}
+          >
+            {icon}
+          </span>
+          <span className={`text-xs font-bold ${isActive ? "text-brand-700" : "text-slate-400"}`}>
+            {label}
+          </span>
+        </>
+      )}
+    </NavLink>
+  );
+}
+
 export function NavBar() {
   const { user, logout } = useAuth();
 
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex-1 rounded-lg py-2 text-center text-sm font-medium transition ${
-      isActive ? "bg-brand-600 text-white" : "text-slate-600 hover:bg-brand-50"
-    }`;
-
   return (
-    <header className="sticky top-0 z-10 bg-slate-50 px-4 pt-3">
+    <header className="sticky top-0 z-10 bg-slate-50 px-4 pb-3 pt-3">
       <div className="mx-auto max-w-2xl">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-gradient-to-r from-orange-100 via-rose-50 to-sky-100 px-4 py-3 shadow-sm">
           <div className="flex items-center gap-2">
@@ -35,13 +59,9 @@ export function NavBar() {
             </div>
           )}
         </div>
-        <nav className="flex gap-2 py-3">
-          <NavLink to="/" end className={linkClass}>
-            기도제목
-          </NavLink>
-          <NavLink to="/prayers" className={linkClass}>
-            릴레이 기도
-          </NavLink>
+        <nav className="mt-3 flex rounded-2xl bg-white px-2 pt-2 shadow-sm">
+          <NavTab to="/" end icon="🙏" label="기도제목" />
+          <NavTab to="/prayers" icon="📖" label="릴레이 기도" />
         </nav>
       </div>
     </header>
