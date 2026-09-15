@@ -4,9 +4,11 @@ import { BulkPrayerRequestForm } from "../components/BulkPrayerRequestForm";
 import { PrayerRequestFilters } from "../components/PrayerRequestFilters";
 import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
+import { useAuth } from "../context/AuthContext";
 import type { Member, PrayerRequest } from "../types";
 
 export function PrayerRequestsPage() {
+  const { user } = useAuth();
   const [items, setItems] = useState<PrayerRequest[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +78,7 @@ export function PrayerRequestsPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
       <PrayerRequestForm members={members} onSubmit={handleCreate} />
-      <BulkPrayerRequestForm members={members} onSubmit={handleBulkCreate} />
+      {user?.isAdmin && <BulkPrayerRequestForm members={members} onSubmit={handleBulkCreate} />}
       <PrayerRequestFilters
         members={members}
         memberId={filterMemberId}

@@ -7,6 +7,7 @@ export interface User {
   id: string;
   name: string;
   isLeader: boolean;
+  isAdmin: boolean;
 }
 
 export interface Member {

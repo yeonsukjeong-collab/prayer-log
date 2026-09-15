@@ -27,7 +27,7 @@ router.post("/login", async (req, res) => {
 
   const token = signSession({ userId: member.id });
   res.cookie(sessionCookie.name, token, sessionCookie.options);
-  res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader } });
+  res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader, isAdmin: member.isAdmin } });
 });
 
 router.post("/logout", (_req, res) => {
@@ -41,7 +41,7 @@ router.get("/me", requireAuth, async (req, res) => {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
-  res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader } });
+  res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader, isAdmin: member.isAdmin } });
 });
 
 export default router;
