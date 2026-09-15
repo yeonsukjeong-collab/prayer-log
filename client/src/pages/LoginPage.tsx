@@ -73,7 +73,9 @@ export function LoginPage() {
           입장하기
         </button>
       </form>
-      <FontSizeControl />
+      <div className="flex gap-2">
+        <FontSizeControl />
+      </div>
     </div>
   );
 }
