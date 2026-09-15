@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
-import { useAuth } from "../context/AuthContext";
 import type { Member, PrayerRequest } from "../types";
 
 export function PrayerRequestsPage() {
-  const { user } = useAuth();
   const [items, setItems] = useState<PrayerRequest[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,9 +17,8 @@ export function PrayerRequestsPage() {
   }, []);
 
   useEffect(() => {
-    if (!user?.isLeader) return;
     api.get<{ members: Member[] }>("/members").then((res) => setMembers(res.members));
-  }, [user?.isLeader]);
+  }, []);
 
   async function handleCreate(content: string, authorId?: string) {
     const res = await api.post<{ item: PrayerRequest }>("/prayer-requests", { content, authorId });

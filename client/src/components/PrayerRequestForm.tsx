@@ -29,7 +29,7 @@ export function PrayerRequestForm({ members, onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm">
-      {user?.isLeader && members.length > 0 && (
+      {members.length > 0 && (
         <select
           value={authorId}
           onChange={(e) => setAuthorId(e.target.value)}

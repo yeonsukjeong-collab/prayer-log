@@ -28,11 +28,6 @@ router.post("/", async (req, res) => {
 
   let authorId = req.userId!;
   if (parsed.data.authorId && parsed.data.authorId !== req.userId) {
-    const currentUser = await prisma.member.findUnique({ where: { id: req.userId } });
-    if (!currentUser?.isLeader) {
-      res.status(403).json({ error: "다른 사람 이름으로 등록할 권한이 없습니다." });
-      return;
-    }
     const target = await prisma.member.findUnique({ where: { id: parsed.data.authorId } });
     if (!target) {
       res.status(400).json({ error: "대상을 찾을 수 없습니다." });

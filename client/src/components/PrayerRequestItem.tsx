@@ -14,11 +14,12 @@ export function PrayerRequestItem({ item, onToggleAnswered, onDelete }: Props) {
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [note, setNote] = useState(item.answeredNote ?? "");
 
-  const createdAt = new Date(item.createdAt).toLocaleDateString("ko-KR", {
+  const createdDate = new Date(item.createdAt);
+  const createdAt = `${createdDate.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
+  })} (${createdDate.toLocaleDateString("ko-KR", { weekday: "short" })})`;
 
   return (
     <li
