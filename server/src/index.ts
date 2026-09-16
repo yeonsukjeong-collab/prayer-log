@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { env } from "./env.js";
 import authRouter from "./routes/auth.js";
 import membersRouter from "./routes/members.js";
+import photosRouter from "./routes/photos.js";
 import prayerRequestsRouter from "./routes/prayerRequests.js";
 import prayerTextsRouter from "./routes/prayerTexts.js";
 
@@ -19,11 +20,12 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "12mb" }));
 app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
 app.use("/api/members", membersRouter);
+app.use("/api/photos", photosRouter);
 app.use("/api/prayer-requests", prayerRequestsRouter);
 app.use("/api/prayer-texts", prayerTextsRouter);
 

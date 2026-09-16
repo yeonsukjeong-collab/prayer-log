@@ -36,3 +36,16 @@ export interface PrayerText {
   updatedAt: string;
   author: AuthorSummary;
 }
+
+export interface PhotoSummary {
+  id: string;
+  caption: string | null;
+  photoDate: string;
+  thumbnailData: string;
+  createdAt: string;
+  author: AuthorSummary;
+}
+
+export interface PhotoDetail extends PhotoSummary {
+  imageData: string;
+}

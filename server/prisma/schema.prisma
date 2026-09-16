@@ -16,6 +16,7 @@ model Member {
 
   prayerRequests PrayerRequest[]
   prayerTexts    PrayerText[]
+  photos         Photo[]
 
   @@map("prayer_log_members")
 }
@@ -52,4 +53,20 @@ model PrayerText {
   @@index([authorId])
   @@index([meetingDate])
   @@map("prayer_log_prayer_texts")
+}
+
+model Photo {
+  id            String   @id @default(uuid())
+  caption       String?
+  photoDate     DateTime @default(now())
+  thumbnailData String   @db.Text
+  imageData     String   @db.Text
+  createdAt     DateTime @default(now())
+
+  authorId String
+  author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([photoDate])
+  @@map("prayer_log_photos")
 }

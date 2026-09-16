@@ -3,6 +3,7 @@ import { LoadingSpinner } from "./components/LoadingSpinner";
 import { NavBar } from "./components/NavBar";
 import { useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
+import { MemoriesPage } from "./pages/MemoriesPage";
 import { PrayerRequestsPage } from "./pages/PrayerRequestsPage";
 import { PrayerTextsPage } from "./pages/PrayerTextsPage";
 
@@ -23,6 +24,7 @@ function App() {
       <Routes>
         <Route path="/" element={<PrayerRequestsPage />} />
         <Route path="/prayers" element={<PrayerTextsPage />} />
+        <Route path="/memories" element={<MemoriesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

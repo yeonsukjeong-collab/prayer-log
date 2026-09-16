@@ -83,11 +83,13 @@ Start Command:
 node server/dist/index.js
 ```
 
-> DB 테이블은 다른 서비스와 충돌하지 않도록 `prayer_log_` 접두사를 붙여 생성됩니다 (`prayer_log_members`, `prayer_log_prayer_requests`, `prayer_log_prayer_texts`). 기존에 사용 중인 Postgres에 다른 앱의 테이블이 있어도 안전하게 함께 쓸 수 있습니다.
+> DB 테이블은 다른 서비스와 충돌하지 않도록 `prayer_log_` 접두사를 붙여 생성됩니다 (`prayer_log_members`, `prayer_log_prayer_requests`, `prayer_log_prayer_texts`, `prayer_log_photos`). 기존에 사용 중인 Postgres에 다른 앱의 테이블이 있어도 안전하게 함께 쓸 수 있습니다.
+>
+> 사진은 별도 저장소 없이 Postgres에 base64로 저장합니다 (브라우저에서 업로드 전 리사이즈·압축). 사진이 많이 쌓이면 Render Postgres 무료 플랜의 1GB 저장 공간에 여유가 있는지 가끔 확인하세요.
 
 ## 4. PWA 아이콘
 
-파비콘과 홈 화면 아이콘(`favicon.svg`, `pwa-192x192.png`, `pwa-512x512.png`)은 기도(🙏) 모양으로 되어 있습니다. 다른 아이콘으로 바꾸려면 `client/public/`의 해당 파일들을 교체하세요.
+파비콘과 홈 화면 아이콘(`favicon.png`, `pwa-192x192.png`, `pwa-512x512.png`)은 기도하는 사람 모양으로 되어 있습니다. 다른 아이콘으로 바꾸려면 `client/public/`의 해당 파일들을 교체하세요.
 
 ## 주요 기능
 
@@ -101,3 +103,4 @@ node server/dist/index.js
 - 릴레이 기도 작성 시에도 작성자를 풀다운 메뉴에서 선택 가능, 카드 상단에 이름·날짜(요일) 굵은 파란 글씨로 표시
 - 기도제목·릴레이 기도 모두 등록/수정 시 날짜를 직접 선택 가능 (기본값은 오늘)
 - 화면 글자 크기 조절 아이콘 (브라우저에 저장됨)
+- **추억** 탭: 사진 촬영/업로드, 날짜별로 묶은 썸네일 그리드, 클릭 시 원본 보기. 목록에는 작은 썸네일만 전달하고 원본은 클릭 시에만 불러와 로딩을 가볍게 유지
