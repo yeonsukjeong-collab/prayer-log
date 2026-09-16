@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png'],
       manifest: {
-        name: '목장 기도록',
-        short_name: '기도록',
+        name: '자카르타 목장',
+        short_name: '자카르타 목장',
         description: '목장 모임 기도문과 기도제목을 함께 기록하고 나누는 공간',
         theme_color: '#4f46e5',
         background_color: '#ffffff',
