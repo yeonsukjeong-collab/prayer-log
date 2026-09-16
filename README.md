@@ -85,7 +85,7 @@ node server/dist/index.js
 
 > DB 테이블은 다른 서비스와 충돌하지 않도록 `prayer_log_` 접두사를 붙여 생성됩니다 (`prayer_log_members`, `prayer_log_prayer_requests`, `prayer_log_prayer_texts`, `prayer_log_photos`). 기존에 사용 중인 Postgres에 다른 앱의 테이블이 있어도 안전하게 함께 쓸 수 있습니다.
 >
-> 사진은 별도 저장소 없이 Postgres에 base64로 저장합니다 (브라우저에서 업로드 전 리사이즈·압축). 사진이 많이 쌓이면 Render Postgres 무료 플랜의 1GB 저장 공간에 여유가 있는지 가끔 확인하세요.
+> 사진은 별도 저장소 없이 Postgres에 base64로 저장합니다. 브라우저에서 업로드 전 원본 크기와 무관하게 최대 1MB(사진 1장당)로 자동 리사이즈·압축합니다 (`client/src/utils/image.ts`). 사진이 많이 쌓이면 Render Postgres 무료 플랜의 1GB 저장 공간에 여유가 있는지 가끔 확인하세요.
 
 ## 4. PWA 아이콘
 
