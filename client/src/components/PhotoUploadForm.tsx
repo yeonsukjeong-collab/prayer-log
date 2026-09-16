@@ -4,6 +4,7 @@ import type { Member } from "../types";
 import { processPhotoFile } from "../utils/image";
 import { toDateInputValue } from "../utils/date";
 import { getCaptureDate } from "../utils/exif";
+import { CameraCaptureModal } from "./CameraCaptureModal";
 
 interface Props {
   members: Member[];
@@ -16,6 +17,8 @@ interface Props {
   }) => Promise<void>;
 }
 
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 export function PhotoUploadForm({ members, onUpload }: Props) {
   const { user } = useAuth();
   const [authorId, setAuthorId] = useState(user?.id ?? "");
@@ -23,13 +26,12 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [showCamera, setShowCamera] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  async function handleFiles(e: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = "";
+  async function uploadFiles(files: File[]) {
     if (files.length === 0) return;
 
     setUploading(true);
@@ -53,6 +55,25 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleFileInputChange(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    await uploadFiles(files);
+  }
+
+  function handleCameraButtonClick() {
+    if (IS_MOBILE) {
+      cameraInputRef.current?.click();
+    } else {
+      setShowCamera(true);
+    }
+  }
+
+  async function handleCameraCapture(file: File) {
+    setShowCamera(false);
+    await uploadFiles([file]);
   }
 
   return (
@@ -96,7 +117,7 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
           accept="image/*"
           capture="environment"
           className="hidden"
-          onChange={handleFiles}
+          onChange={handleFileInputChange}
         />
         <input
           ref={galleryInputRef}
@@ -104,12 +125,12 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
           accept="image/*"
           multiple
           className="hidden"
-          onChange={handleFiles}
+          onChange={handleFileInputChange}
         />
         <button
           type="button"
           disabled={uploading}
-          onClick={() => cameraInputRef.current?.click()}
+          onClick={handleCameraButtonClick}
           className="flex-1 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           📷 사진 촬영
@@ -128,6 +149,10 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
         <p className="text-center text-xs text-slate-400">
           업로드 중... ({progress.done}/{progress.total})
         </p>
+      )}
+
+      {showCamera && (
+        <CameraCaptureModal onCapture={handleCameraCapture} onClose={() => setShowCamera(false)} />
       )}
     </div>
   );
