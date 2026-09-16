@@ -54,7 +54,6 @@ export function MemoriesPage() {
   async function handleUpload(entry: {
     thumbnailData: string;
     imageData: string;
-    caption?: string;
     authorId?: string;
     photoDate?: string;
   }) {
@@ -114,7 +113,7 @@ export function MemoriesPage() {
             </p>
           ) : (
             groups.map((group) => (
-              <section key={group.dateKey}>
+              <section key={group.dateKey} className="rounded-xl bg-white p-3 shadow-sm">
                 <h2 className="mb-2 text-sm font-bold text-blue-700">
                   {group.dateLabel} ({group.weekdayLabel})
                 </h2>
@@ -123,7 +122,7 @@ export function MemoriesPage() {
                     <button
                       key={photo.id}
                       onClick={() => setViewingPhoto(photo)}
-                      className="aspect-square overflow-hidden rounded-lg bg-slate-100 shadow-sm"
+                      className="aspect-square overflow-hidden rounded-lg bg-slate-100"
                     >
                       <img
                         src={photo.thumbnailData}

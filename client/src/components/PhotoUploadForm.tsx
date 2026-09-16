@@ -11,7 +11,6 @@ interface Props {
   onUpload: (entry: {
     thumbnailData: string;
     imageData: string;
-    caption?: string;
     authorId?: string;
     photoDate?: string;
   }) => Promise<void>;
@@ -23,7 +22,6 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
   const { user } = useAuth();
   const [authorId, setAuthorId] = useState(user?.id ?? "");
   const [photoDate, setPhotoDate] = useState(() => toDateInputValue(new Date()));
-  const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [showCamera, setShowCamera] = useState(false);
@@ -45,13 +43,11 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
         await onUpload({
           thumbnailData,
           imageData,
-          caption: caption.trim() || undefined,
           authorId: authorId || undefined,
           photoDate: captureDate ? toDateInputValue(captureDate) : photoDate || undefined,
         });
         setProgress((p) => ({ ...p, done: p.done + 1 }));
       }
-      setCaption("");
     } finally {
       setUploading(false);
     }
@@ -100,15 +96,6 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
           className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
         />
       </div>
-      <p className="text-xs text-slate-400">
-        사진에 촬영 날짜 정보가 있으면 자동으로 그 날짜로 저장돼요. 없으면 위 날짜가 사용됩니다.
-      </p>
-      <input
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-        placeholder="사진 설명 (선택)"
-        className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
-      />
 
       <div className="flex gap-2">
         <input

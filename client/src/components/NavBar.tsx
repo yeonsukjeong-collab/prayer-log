@@ -62,7 +62,7 @@ export function NavBar() {
         <nav className="mt-3 flex rounded-2xl bg-white px-2 pt-2 shadow-sm">
           <NavTab to="/" end icon="🙏" label="기도제목" />
           <NavTab to="/prayers" icon="📖" label="릴레이 기도" />
-          <NavTab to="/memories" icon="📷" label="추억" />
+          <NavTab to="/memories" icon="📷" label="사진" />
         </nav>
       </div>
     </header>
