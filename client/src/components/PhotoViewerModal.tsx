@@ -20,6 +20,8 @@ export function PhotoViewerModal({ photo, onClose, onDelete }: Props) {
   }, [photo.id]);
 
   const { dateLabel, weekdayLabel } = formatDateWithWeekday(new Date(photo.photoDate));
+  const fileDate = photo.photoDate.slice(0, 10);
+  const downloadName = `${photo.author.name}_${fileDate}.jpg`;
 
   return (
     <div
@@ -35,6 +37,17 @@ export function PhotoViewerModal({ photo, onClose, onDelete }: Props) {
             {photo.author.name} · {dateLabel} ({weekdayLabel})
           </p>
           <div className="flex items-center gap-3 text-xs">
+            {detail ? (
+              <a
+                href={detail.imageData}
+                download={downloadName}
+                className="text-slate-400 hover:text-brand-600"
+              >
+                다운로드
+              </a>
+            ) : (
+              <span className="text-slate-300">다운로드</span>
+            )}
             {canManage && (
               <button
                 onClick={() => onDelete(photo.id)}

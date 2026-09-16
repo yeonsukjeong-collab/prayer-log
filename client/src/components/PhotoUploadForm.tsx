@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import type { Member } from "../types";
 import { processPhotoFile } from "../utils/image";
 import { toDateInputValue } from "../utils/date";
+import { getCaptureDate } from "../utils/exif";
 
 interface Props {
   members: Member[];
@@ -35,13 +36,16 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
     setProgress({ done: 0, total: files.length });
     try {
       for (const file of files) {
-        const { thumbnailData, imageData } = await processPhotoFile(file);
+        const [{ thumbnailData, imageData }, captureDate] = await Promise.all([
+          processPhotoFile(file),
+          getCaptureDate(file),
+        ]);
         await onUpload({
           thumbnailData,
           imageData,
           caption: caption.trim() || undefined,
           authorId: authorId || undefined,
-          photoDate: photoDate || undefined,
+          photoDate: captureDate ? toDateInputValue(captureDate) : photoDate || undefined,
         });
         setProgress((p) => ({ ...p, done: p.done + 1 }));
       }
@@ -71,9 +75,13 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
           type="date"
           value={photoDate}
           onChange={(e) => setPhotoDate(e.target.value)}
+          title="사진에 촬영 날짜 정보가 없을 때 사용할 기본 날짜"
           className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
         />
       </div>
+      <p className="text-xs text-slate-400">
+        사진에 촬영 날짜 정보가 있으면 자동으로 그 날짜로 저장돼요. 없으면 위 날짜가 사용됩니다.
+      </p>
       <input
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
