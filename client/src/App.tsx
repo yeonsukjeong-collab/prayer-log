@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { LoadingSpinner } from "./components/LoadingSpinner";
 import { NavBar } from "./components/NavBar";
 import { useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
@@ -9,11 +10,7 @@ function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-slate-400">
-        불러오는 중...
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!user) {

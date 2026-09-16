@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import { MemberPeriodFilters } from "../components/MemberPeriodFilters";
 import { PrayerTextForm } from "../components/PrayerTextForm";
 import { PrayerTextItem } from "../components/PrayerTextItem";
@@ -73,18 +74,28 @@ export function PrayerTextsPage() {
         onCustomEndDateChange={setCustomEndDate}
       />
 
-      {loading ? (
-        <p className="text-center text-sm text-slate-400">불러오는 중...</p>
-      ) : items.length === 0 ? (
-        <p className="rounded-xl bg-white/60 p-4 text-center text-sm text-slate-400">
-          조건에 맞는 릴레이 기도가 없어요.
-        </p>
+      {loading && items.length === 0 ? (
+        <LoadingSpinner />
       ) : (
-        <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <PrayerTextItem key={item.id} item={item} onUpdate={handleUpdate} onDelete={handleDelete} />
-          ))}
-        </ul>
+        <>
+          {loading && (
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-brand-100 border-t-brand-600" />
+              새로고침 중...
+            </div>
+          )}
+          {items.length === 0 ? (
+            <p className="rounded-xl bg-white/60 p-4 text-center text-sm text-slate-400">
+              조건에 맞는 릴레이 기도가 없어요.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {items.map((item) => (
+                <PrayerTextItem key={item.id} item={item} onUpdate={handleUpdate} onDelete={handleDelete} />
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );

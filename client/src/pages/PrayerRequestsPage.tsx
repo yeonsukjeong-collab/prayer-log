@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { BulkPrayerRequestForm } from "../components/BulkPrayerRequestForm";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 import { MemberPeriodFilters } from "../components/MemberPeriodFilters";
 import { PrayerRequestForm } from "../components/PrayerRequestForm";
 import { PrayerRequestItem } from "../components/PrayerRequestItem";
@@ -90,10 +91,16 @@ export function PrayerRequestsPage() {
         onCustomEndDateChange={setCustomEndDate}
       />
 
-      {loading ? (
-        <p className="text-center text-sm text-slate-400">불러오는 중...</p>
+      {loading && items.length === 0 ? (
+        <LoadingSpinner />
       ) : (
         <>
+          {loading && (
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-brand-100 border-t-brand-600" />
+              새로고침 중...
+            </div>
+          )}
           <section>
             <h2 className="mb-2 text-sm font-semibold text-slate-500">
               기도 중 ({active.length})

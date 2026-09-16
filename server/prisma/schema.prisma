@@ -33,6 +33,8 @@ model PrayerRequest {
   authorId String
   author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  @@index([authorId])
+  @@index([requestDate])
   @@map("prayer_log_prayer_requests")
 }
 
@@ -47,5 +49,7 @@ model PrayerText {
   authorId String
   author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  @@index([authorId])
+  @@index([meetingDate])
   @@map("prayer_log_prayer_texts")
 }
