@@ -87,7 +87,7 @@ node server/dist/index.js
 
 ## 4. PWA 아이콘
 
-`client/public/`에 `pwa-192x192.png`, `pwa-512x512.png` 아이콘을 추가하면 홈 화면 추가 시 아이콘이 표시됩니다 (현재는 기본 favicon만 있음).
+파비콘과 홈 화면 아이콘(`favicon.svg`, `pwa-192x192.png`, `pwa-512x512.png`)은 기도(🙏) 모양으로 되어 있습니다. 다른 아이콘으로 바꾸려면 `client/public/`의 해당 파일들을 교체하세요.
 
 ## 주요 기능
 
