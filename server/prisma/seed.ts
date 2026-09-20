@@ -9,7 +9,6 @@ const MEMBERS: { name: string; isLeader?: boolean; isAdmin?: boolean }[] = [
   { name: "주유란" },
   { name: "이종준" },
   { name: "박진현" },
-  { name: "김준하" },
 ];
 
 async function main() {
