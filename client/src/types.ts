@@ -49,3 +49,19 @@ export interface PhotoSummary {
 export interface PhotoDetail extends PhotoSummary {
   imageData: string;
 }
+
+export interface Benediction {
+  id: string;
+  content: string;
+  updatedAt: string;
+  updatedBy: AuthorSummary;
+}
+
+export interface PastorPrayer {
+  id: string;
+  content: string;
+  prayerDate: string;
+  createdAt: string;
+  updatedAt: string;
+  recordedBy: AuthorSummary;
+}

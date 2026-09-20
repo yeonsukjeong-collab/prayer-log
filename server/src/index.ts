@@ -5,7 +5,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./env.js";
 import authRouter from "./routes/auth.js";
+import benedictionRouter from "./routes/benediction.js";
 import membersRouter from "./routes/members.js";
+import pastorPrayersRouter from "./routes/pastorPrayers.js";
 import photosRouter from "./routes/photos.js";
 import prayerRequestsRouter from "./routes/prayerRequests.js";
 import prayerTextsRouter from "./routes/prayerTexts.js";
@@ -28,6 +30,8 @@ app.use("/api/members", membersRouter);
 app.use("/api/photos", photosRouter);
 app.use("/api/prayer-requests", prayerRequestsRouter);
 app.use("/api/prayer-texts", prayerTextsRouter);
+app.use("/api/benediction", benedictionRouter);
+app.use("/api/pastor-prayers", pastorPrayersRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });

@@ -63,6 +63,7 @@ export function NavBar() {
           <NavTab to="/" end icon="🙏" label="기도제목" />
           <NavTab to="/prayers" icon="📖" label="릴레이 기도" />
           <NavTab to="/memories" icon="📷" label="사진" />
+          <NavTab to="/church" icon="⛪" label="은혜샘물교회" />
         </nav>
       </div>
     </header>

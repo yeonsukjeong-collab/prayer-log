@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { ChurchPage } from "./pages/ChurchPage";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { NavBar } from "./components/NavBar";
 import { useAuth } from "./context/AuthContext";
@@ -25,6 +26,7 @@ function App() {
         <Route path="/" element={<PrayerRequestsPage />} />
         <Route path="/prayers" element={<PrayerTextsPage />} />
         <Route path="/memories" element={<MemoriesPage />} />
+        <Route path="/church" element={<ChurchPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

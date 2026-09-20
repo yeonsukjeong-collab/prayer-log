@@ -83,7 +83,7 @@ Start Command:
 node server/dist/index.js
 ```
 
-> DB 테이블은 다른 서비스와 충돌하지 않도록 `prayer_log_` 접두사를 붙여 생성됩니다 (`prayer_log_members`, `prayer_log_prayer_requests`, `prayer_log_prayer_texts`, `prayer_log_photos`). 기존에 사용 중인 Postgres에 다른 앱의 테이블이 있어도 안전하게 함께 쓸 수 있습니다.
+> DB 테이블은 다른 서비스와 충돌하지 않도록 `prayer_log_` 접두사를 붙여 생성됩니다 (`prayer_log_members`, `prayer_log_prayer_requests`, `prayer_log_prayer_texts`, `prayer_log_photos`, `prayer_log_benediction`, `prayer_log_pastor_prayers`). 기존에 사용 중인 Postgres에 다른 앱의 테이블이 있어도 안전하게 함께 쓸 수 있습니다.
 >
 > 사진은 별도 저장소 없이 Postgres에 base64로 저장합니다. 브라우저에서 업로드 전 원본 크기와 무관하게 최대 1MB(사진 1장당)로 자동 리사이즈·압축합니다 (`client/src/utils/image.ts`). 사진이 많이 쌓이면 Render Postgres 무료 플랜의 1GB 저장 공간에 여유가 있는지 가끔 확인하세요.
 
@@ -107,3 +107,6 @@ node server/dist/index.js
   - 정렬 기준은 업로드한 시각이 아니라 **사진이 실제로 찍힌 날짜**입니다. 사진 파일의 EXIF 촬영 날짜를 자동으로 읽어오고(`client/src/utils/exif.ts`), 정보가 없는 사진만 업로드 시 선택한 날짜를 사용합니다.
   - 원본 사진을 볼 때 "다운로드" 버튼으로 기기에 저장할 수 있습니다.
   - "사진 촬영" 버튼은 모바일에서는 기기의 카메라 앱을 열고, 컴퓨터(PC)에서는 웹캠 미리보기 화면을 띄워 바로 촬영할 수 있습니다 (`getUserMedia` 사용, HTTPS 또는 localhost에서만 동작).
+- **은혜샘물교회** 탭:
+  - **축도**: 매주 목사님이 예배 말미에 주시는, 매번 동일한 축도문을 등록해두고 목장원 누구나 언제든 볼 수 있습니다. 단일 문서라서 목록이 아니라 하나만 존재하며, 웹관리자·목자만 수정할 수 있습니다.
+  - **윤만선 목사님 기도문**: 매주 예배 말미에 주시는 기도문을 날짜별로 기록해 목장원이 언제든 열람할 수 있습니다. 등록·수정·삭제는 웹관리자·목자만 가능하고, 열람은 모든 목장원에게 열려 있습니다.
