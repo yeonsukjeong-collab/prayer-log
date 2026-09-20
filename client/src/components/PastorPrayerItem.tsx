@@ -45,7 +45,7 @@ export function PastorPrayerItem({ item, onUpdate, onDelete }: Props) {
       <div className="flex items-center justify-between gap-2">
         <button className="flex-1 text-left" onClick={() => setExpanded((v) => !v)} disabled={editing}>
           <p className="text-sm font-bold text-blue-700">
-            윤만선 목사님 기도문 · {dateLabel} ({weekdayLabel})
+            {dateLabel} ({weekdayLabel})
           </p>
         </button>
         <div className="flex shrink-0 items-center gap-2 text-xs">

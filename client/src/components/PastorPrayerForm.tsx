@@ -48,7 +48,7 @@ export function PastorPrayerForm({ onSubmit }: Props) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="윤만선 목사님 기도문을 입력하세요"
+        placeholder="목사님 기도문을 입력하세요"
         rows={6}
         className="resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
       />
