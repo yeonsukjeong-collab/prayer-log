@@ -68,6 +68,10 @@ export function MemoriesPage() {
     await fetchItems();
   }
 
+  function handleCommentCountChange(photoId: string, count: number) {
+    setItems((prev) => prev.map((p) => (p.id === photoId ? { ...p, commentCount: count } : p)));
+  }
+
   const groups: PhotoGroup[] = useMemo(() => {
     const map = new Map<string, PhotoGroup>();
     for (const photo of items) {
@@ -122,13 +126,18 @@ export function MemoriesPage() {
                     <button
                       key={photo.id}
                       onClick={() => setViewingPhoto(photo)}
-                      className="aspect-square overflow-hidden rounded-lg bg-slate-100"
+                      className="relative aspect-square overflow-hidden rounded-lg bg-slate-100"
                     >
                       <img
                         src={photo.thumbnailData}
                         alt={photo.caption ?? "사진"}
                         className="h-full w-full object-cover"
                       />
+                      {photo.commentCount > 0 && (
+                        <span className="absolute bottom-1 right-1 flex items-center gap-0.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          💬 {photo.commentCount}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -143,6 +152,7 @@ export function MemoriesPage() {
           photo={viewingPhoto}
           onClose={() => setViewingPhoto(null)}
           onDelete={handleDelete}
+          onCommentCountChange={handleCommentCountChange}
         />
       )}
     </div>

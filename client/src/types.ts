@@ -44,6 +44,7 @@ export interface PhotoSummary {
   thumbnailData: string;
   createdAt: string;
   author: AuthorSummary;
+  commentCount: number;
 }
 
 export interface PhotoComment {

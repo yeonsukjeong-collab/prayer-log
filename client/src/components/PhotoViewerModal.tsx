@@ -8,9 +8,10 @@ interface Props {
   photo: PhotoSummary;
   onClose: () => void;
   onDelete: (id: string) => void;
+  onCommentCountChange?: (photoId: string, count: number) => void;
 }
 
-export function PhotoViewerModal({ photo, onClose, onDelete }: Props) {
+export function PhotoViewerModal({ photo, onClose, onDelete, onCommentCountChange }: Props) {
   const { user } = useAuth();
   const [detail, setDetail] = useState<PhotoDetail | null>(null);
   const [commentText, setCommentText] = useState("");
@@ -35,7 +36,12 @@ export function PhotoViewerModal({ photo, onClose, onDelete }: Props) {
       const res = await api.post<{ comment: PhotoComment }>(`/photos/${photo.id}/comments`, {
         content: trimmed,
       });
-      setDetail((prev) => (prev ? { ...prev, comments: [...prev.comments, res.comment] } : prev));
+      setDetail((prev) => {
+        if (!prev) return prev;
+        const comments = [...prev.comments, res.comment];
+        onCommentCountChange?.(photo.id, comments.length);
+        return { ...prev, comments };
+      });
       setCommentText("");
     } finally {
       setPosting(false);
@@ -45,9 +51,12 @@ export function PhotoViewerModal({ photo, onClose, onDelete }: Props) {
   async function handleDeleteComment(commentId: string) {
     if (!confirm("이 댓글을 삭제할까요?")) return;
     await api.delete(`/photos/${photo.id}/comments/${commentId}`);
-    setDetail((prev) =>
-      prev ? { ...prev, comments: prev.comments.filter((c) => c.id !== commentId) } : prev,
-    );
+    setDetail((prev) => {
+      if (!prev) return prev;
+      const comments = prev.comments.filter((c) => c.id !== commentId);
+      onCommentCountChange?.(photo.id, comments.length);
+      return { ...prev, comments };
+    });
   }
 
   return (

@@ -14,7 +14,13 @@ const photoSummarySelect = {
   thumbnailData: true,
   createdAt: true,
   author: { select: { id: true, name: true } },
+  _count: { select: { comments: true } },
 } as const;
+
+function withCommentCount<T extends { _count: { comments: number } }>(photo: T) {
+  const { _count, ...rest } = photo;
+  return { ...rest, commentCount: _count.comments };
+}
 
 const listQuerySchema = z.object({
   authorId: z.string().uuid().optional(),
@@ -45,7 +51,7 @@ router.get("/", async (req, res) => {
     orderBy: { photoDate: "desc" },
     select: photoSummarySelect,
   });
-  res.json({ items });
+  res.json({ items: items.map(withCommentCount) });
 });
 
 router.get("/:id", async (req, res) => {
@@ -149,7 +155,7 @@ router.post("/", async (req, res) => {
     },
     select: photoSummarySelect,
   });
-  res.status(201).json({ item });
+  res.status(201).json({ item: withCommentCount(item) });
 });
 
 router.delete("/:id", async (req, res) => {
