@@ -46,8 +46,16 @@ export interface PhotoSummary {
   author: AuthorSummary;
 }
 
+export interface PhotoComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: AuthorSummary;
+}
+
 export interface PhotoDetail extends PhotoSummary {
   imageData: string;
+  comments: PhotoComment[];
 }
 
 export interface Benediction {

@@ -17,6 +17,7 @@ model Member {
   prayerRequests PrayerRequest[]
   prayerTexts    PrayerText[]
   photos         Photo[]
+  photoComments  PhotoComment[]
   benedictions   Benediction[]
   pastorPrayers  PastorPrayer[]
 
@@ -68,9 +69,26 @@ model Photo {
   authorId String
   author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  comments PhotoComment[]
+
   @@index([authorId])
   @@index([photoDate])
   @@map("prayer_log_photos")
+}
+
+model PhotoComment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  photoId String
+  photo   Photo  @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([photoId])
+  @@map("prayer_log_photo_comments")
 }
 
 model Benediction {
