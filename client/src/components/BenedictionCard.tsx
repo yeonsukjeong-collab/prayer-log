@@ -70,7 +70,7 @@ export function BenedictionCard({ benediction, onSave }: Props) {
         </div>
       ) : benediction ? (
         <>
-          <p className="mt-2 whitespace-pre-wrap text-base font-bold text-slate-800">{benediction.content}</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm font-bold text-slate-800">{benediction.content}</p>
           <p className="mt-2 text-xs text-slate-400">
             {benediction.updatedBy.name} · 최근 수정{" "}
             {(() => {
