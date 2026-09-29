@@ -27,7 +27,7 @@ export function PastorPrayerForm({ onSubmit }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <h2 className="shrink-0 text-sm font-bold text-blue-700">목사님 기도문</h2>
         {!open && (

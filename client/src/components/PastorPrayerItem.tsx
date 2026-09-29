@@ -41,7 +41,7 @@ export function PastorPrayerItem({ item, onUpdate, onDelete }: Props) {
   }
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <li className="border-t border-slate-100 py-3 first:border-t-0 first:pt-0">
       <div className="flex items-center justify-between gap-2">
         <button className="flex-1 text-left" onClick={() => setExpanded((v) => !v)} disabled={editing}>
           <p className="text-sm font-bold text-blue-700">

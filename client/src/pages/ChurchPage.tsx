@@ -50,24 +50,24 @@ export function ChurchPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
       <BenedictionCard benediction={benediction} />
 
-      <PastorPrayerForm onSubmit={handleCreatePrayer} />
+      <section className="flex flex-col rounded-xl bg-white p-3 shadow-sm">
+        <PastorPrayerForm onSubmit={handleCreatePrayer} />
 
-      {prayers.length === 0 ? (
-        <p className="rounded-xl bg-white/60 p-4 text-center text-sm text-slate-400">
-          아직 등록된 기도문이 없어요.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {prayers.map((item) => (
-            <PastorPrayerItem
-              key={item.id}
-              item={item}
-              onUpdate={handleUpdatePrayer}
-              onDelete={handleDeletePrayer}
-            />
-          ))}
-        </ul>
-      )}
+        {prayers.length === 0 ? (
+          <p className="mt-3 text-center text-sm text-slate-400">아직 등록된 기도문이 없어요.</p>
+        ) : (
+          <ul className="flex flex-col">
+            {prayers.map((item) => (
+              <PastorPrayerItem
+                key={item.id}
+                item={item}
+                onUpdate={handleUpdatePrayer}
+                onDelete={handleDeletePrayer}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
