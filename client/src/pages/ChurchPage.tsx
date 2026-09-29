@@ -55,8 +55,6 @@ export function ChurchPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
       <BenedictionCard benediction={benediction} onSave={handleSaveBenediction} />
 
-      <h2 className="text-sm font-bold text-blue-700">목사님 기도문</h2>
-
       <PastorPrayerForm onSubmit={handleCreatePrayer} />
 
       {prayers.length === 0 ? (

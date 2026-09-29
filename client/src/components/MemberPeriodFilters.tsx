@@ -44,13 +44,13 @@ export function MemberPeriodFilters({
       <select
         value={preset}
         onChange={(e) => onPresetChange(e.target.value as PeriodPreset)}
-        className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+        className="w-24 shrink-0 rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
       >
-        <option value="1w">최근 1주간</option>
-        <option value="2w">최근 2주간</option>
-        <option value="1m">최근 1달간</option>
-        <option value="all">전체 기간</option>
-        <option value="custom">날짜 직접 선택</option>
+        <option value="1w">최근 1주</option>
+        <option value="2w">최근 2주</option>
+        <option value="1m">최근 1달</option>
+        <option value="all">전체기간</option>
+        <option value="custom">직접입력</option>
       </select>
 
       {preset === "custom" && (

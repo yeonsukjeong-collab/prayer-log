@@ -51,10 +51,10 @@ export function PastorPrayerItem({ item, onUpdate, onDelete }: Props) {
         <div className="flex shrink-0 items-center gap-2 text-xs">
           {canManage && !editing && (
             <>
-              <button onClick={startEditing} className="text-slate-500 hover:text-brand-600">
+              <button onClick={startEditing} className="text-brand-600 hover:text-brand-700">
                 수정
               </button>
-              <button onClick={() => onDelete(item.id)} className="text-slate-400 hover:text-red-500">
+              <button onClick={() => onDelete(item.id)} className="text-brand-600 hover:text-red-500">
                 삭제
               </button>
             </>
