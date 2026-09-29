@@ -93,7 +93,7 @@ export function PhotoUploadForm({ members, onUpload }: Props) {
           value={photoDate}
           onChange={(e) => setPhotoDate(e.target.value)}
           title="사진에 촬영 날짜 정보가 없을 때 사용할 기본 날짜"
-          className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
+          className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-sm focus:border-brand-400 focus:outline-none"
         />
       </div>
 
