@@ -54,9 +54,11 @@ export function ChurchPage() {
         <PastorPrayerForm onSubmit={handleCreatePrayer} />
 
         {prayers.length === 0 ? (
-          <p className="mt-3 text-center text-sm text-slate-400">아직 등록된 기도문이 없어요.</p>
+          <p className="mt-4 border-t border-slate-100 pt-4 text-center text-sm text-slate-400">
+            아직 등록된 기도문이 없어요.
+          </p>
         ) : (
-          <ul className="flex flex-col">
+          <ul className="mt-4 flex flex-col border-t border-slate-100 pt-3">
             {prayers.map((item) => (
               <PastorPrayerItem
                 key={item.id}
