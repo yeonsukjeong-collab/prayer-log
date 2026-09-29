@@ -26,8 +26,6 @@ export function MemberPeriodFilters({
   onCustomEndDateChange,
   onExport,
 }: Props) {
-  const hasFilter = memberId || preset !== "1w";
-
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl bg-white p-3 shadow-sm">
       <select
@@ -73,24 +71,12 @@ export function MemberPeriodFilters({
         </div>
       )}
 
-      {hasFilter && (
-        <button
-          onClick={() => {
-            onMemberChange("");
-            onPresetChange("1w");
-          }}
-          className="text-sm text-slate-400 hover:text-slate-600"
-        >
-          초기화
-        </button>
-      )}
-
       {onExport && (
         <button
           onClick={onExport}
           className="ml-auto rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
         >
-          📊 엑셀 다운로드
+          📊 다운로드
         </button>
       )}
     </div>
