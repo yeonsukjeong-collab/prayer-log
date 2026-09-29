@@ -18,11 +18,6 @@ export function ChurchPage() {
     ]).finally(() => setLoading(false));
   }, []);
 
-  async function handleSaveBenediction(content: string) {
-    const res = await api.put<{ item: Benediction }>("/benediction", { content });
-    setBenediction(res.item);
-  }
-
   async function handleCreatePrayer(content: string, prayerDate?: string) {
     const res = await api.post<{ item: PastorPrayer }>("/pastor-prayers", { content, prayerDate });
     setPrayers((prev) =>
@@ -53,7 +48,7 @@ export function ChurchPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
-      <BenedictionCard benediction={benediction} onSave={handleSaveBenediction} />
+      <BenedictionCard benediction={benediction} />
 
       <PastorPrayerForm onSubmit={handleCreatePrayer} />
 
