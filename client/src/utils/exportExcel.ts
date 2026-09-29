@@ -1,4 +1,4 @@
-import type { PrayerRequest } from "../types";
+import type { PrayerRequest, PrayerText } from "../types";
 
 export async function exportPrayerRequestsToExcel(items: PrayerRequest[], filenameHint: string) {
   const XLSX = await import("xlsx");
@@ -28,4 +28,25 @@ export async function exportPrayerRequestsToExcel(items: PrayerRequest[], filena
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "기도제목");
   XLSX.writeFile(workbook, `기도제목_${filenameHint}.xlsx`);
+}
+
+export async function exportPrayerTextsToExcel(items: PrayerText[], filenameHint: string) {
+  const XLSX = await import("xlsx");
+
+  const rows = items.map((item) => {
+    const date = new Date(item.meetingDate);
+    return {
+      작성자: item.author.name,
+      날짜: date.toLocaleDateString("ko-KR"),
+      요일: date.toLocaleDateString("ko-KR", { weekday: "short" }),
+      기도문: item.content,
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet["!cols"] = [{ wch: 10 }, { wch: 12 }, { wch: 6 }, { wch: 60 }];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "릴레이 기도");
+  XLSX.writeFile(workbook, `릴레이기도_${filenameHint}.xlsx`);
 }

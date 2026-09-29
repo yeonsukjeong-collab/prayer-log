@@ -28,3 +28,11 @@ export function rangeForPreset(preset: Exclude<PeriodPreset, "custom">): { start
 
   return { start: toDateInputValue(start), end: toDateInputValue(end) };
 }
+
+export const PERIOD_LABELS: Record<PeriodPreset, string> = {
+  all: "전체기간",
+  "1w": "최근1주간",
+  "2w": "최근2주간",
+  "1m": "최근1달간",
+  custom: "기간지정",
+};

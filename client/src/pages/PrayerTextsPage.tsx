@@ -5,7 +5,8 @@ import { MemberPeriodFilters } from "../components/MemberPeriodFilters";
 import { PrayerTextForm } from "../components/PrayerTextForm";
 import { PrayerTextItem } from "../components/PrayerTextItem";
 import type { Member, PrayerText } from "../types";
-import { rangeForPreset, type PeriodPreset } from "../utils/date";
+import { PERIOD_LABELS, rangeForPreset, type PeriodPreset } from "../utils/date";
+import { exportPrayerTextsToExcel } from "../utils/exportExcel";
 
 export function PrayerTextsPage() {
   const [items, setItems] = useState<PrayerText[]>([]);
@@ -59,6 +60,17 @@ export function PrayerTextsPage() {
     await fetchItems();
   }
 
+  async function handleExport() {
+    if (items.length === 0) {
+      alert("내려받을 릴레이 기도가 없어요.");
+      return;
+    }
+    const memberName = filterMemberId
+      ? (members.find((m) => m.id === filterMemberId)?.name ?? "목원")
+      : "전체목원";
+    await exportPrayerTextsToExcel(items, `${memberName}_${PERIOD_LABELS[preset]}`);
+  }
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
       <PrayerTextForm members={members} onSubmit={handleCreate} />
@@ -72,6 +84,7 @@ export function PrayerTextsPage() {
         onCustomStartDateChange={setCustomStartDate}
         customEndDate={customEndDate}
         onCustomEndDateChange={setCustomEndDate}
+        onExport={handleExport}
       />
 
       {loading && items.length === 0 ? (
