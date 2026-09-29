@@ -9,6 +9,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png'],
+      workbox: {
+        // xlsx is a large, rarely-used chunk (Excel export) — load it on demand
+        // instead of bloating the offline precache.
+        globIgnores: ['**/xlsx-*.js'],
+      },
       manifest: {
         name: '자카르타 목장',
         short_name: '자카르타 목장',

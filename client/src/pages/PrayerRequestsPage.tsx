@@ -8,6 +8,15 @@ import { PrayerRequestItem } from "../components/PrayerRequestItem";
 import { useAuth } from "../context/AuthContext";
 import type { Member, PrayerRequest } from "../types";
 import { rangeForPreset, type PeriodPreset } from "../utils/date";
+import { exportPrayerRequestsToExcel } from "../utils/exportExcel";
+
+const PERIOD_LABELS: Record<PeriodPreset, string> = {
+  all: "전체기간",
+  "1w": "최근1주간",
+  "2w": "최근2주간",
+  "1m": "최근1달간",
+  custom: "기간지정",
+};
 
 export function PrayerRequestsPage() {
   const { user } = useAuth();
@@ -75,6 +84,17 @@ export function PrayerRequestsPage() {
   const active = items.filter((i) => !i.isAnswered);
   const answered = items.filter((i) => i.isAnswered);
 
+  async function handleExport() {
+    if (items.length === 0) {
+      alert("내려받을 기도제목이 없어요.");
+      return;
+    }
+    const memberName = filterMemberId
+      ? (members.find((m) => m.id === filterMemberId)?.name ?? "목원")
+      : "전체목원";
+    await exportPrayerRequestsToExcel(items, `${memberName}_${PERIOD_LABELS[preset]}`);
+  }
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
       <PrayerRequestForm members={members} onSubmit={handleCreate} />
@@ -89,6 +109,7 @@ export function PrayerRequestsPage() {
         onCustomStartDateChange={setCustomStartDate}
         customEndDate={customEndDate}
         onCustomEndDateChange={setCustomEndDate}
+        onExport={handleExport}
       />
 
       {loading && items.length === 0 ? (
@@ -102,9 +123,6 @@ export function PrayerRequestsPage() {
             </div>
           )}
           <section>
-            <h2 className="mb-2 text-sm font-semibold text-slate-500">
-              기도 중 ({active.length})
-            </h2>
             {active.length === 0 ? (
               <p className="rounded-xl bg-white/60 p-4 text-center text-sm text-slate-400">
                 조건에 맞는 기도제목이 없어요.

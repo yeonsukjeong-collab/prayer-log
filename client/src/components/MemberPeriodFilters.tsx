@@ -11,6 +11,7 @@ interface Props {
   onCustomStartDateChange: (value: string) => void;
   customEndDate: string;
   onCustomEndDateChange: (value: string) => void;
+  onExport?: () => void;
 }
 
 export function MemberPeriodFilters({
@@ -23,6 +24,7 @@ export function MemberPeriodFilters({
   onCustomStartDateChange,
   customEndDate,
   onCustomEndDateChange,
+  onExport,
 }: Props) {
   const hasFilter = memberId || preset !== "1w";
 
@@ -80,6 +82,15 @@ export function MemberPeriodFilters({
           className="text-sm text-slate-400 hover:text-slate-600"
         >
           초기화
+        </button>
+      )}
+
+      {onExport && (
+        <button
+          onClick={onExport}
+          className="ml-auto rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+        >
+          📊 엑셀 다운로드
         </button>
       )}
     </div>
