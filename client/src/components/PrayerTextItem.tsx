@@ -16,7 +16,7 @@ export function PrayerTextItem({ item, onUpdate, onDelete }: Props) {
   const [editContent, setEditContent] = useState(item.content);
   const [editDate, setEditDate] = useState(() => toDateInputValue(new Date(item.meetingDate)));
   const [saving, setSaving] = useState(false);
-  const isOwner = user?.id === item.author.id;
+  const canManage = user?.id === item.author.id || user?.isLeader;
 
   const { dateLabel, weekdayLabel } = formatDateWithWeekday(new Date(item.meetingDate));
 
@@ -53,7 +53,7 @@ export function PrayerTextItem({ item, onUpdate, onDelete }: Props) {
           </p>
         </button>
         <div className="flex shrink-0 items-center gap-2 text-xs">
-          {isOwner && !editing && (
+          {canManage && !editing && (
             <>
               <button onClick={startEditing} className="text-slate-500 hover:text-brand-600">
                 수정

@@ -97,8 +97,11 @@ router.patch("/:id", async (req, res) => {
     return;
   }
   if (existing.authorId !== req.userId) {
-    res.status(403).json({ error: "본인이 작성한 기도문만 수정할 수 있습니다." });
-    return;
+    const currentUser = await prisma.member.findUnique({ where: { id: req.userId } });
+    if (!currentUser?.isLeader) {
+      res.status(403).json({ error: "본인이 작성한 기도문만 수정할 수 있습니다." });
+      return;
+    }
   }
 
   const item = await prisma.prayerText.update({
@@ -116,8 +119,11 @@ router.delete("/:id", async (req, res) => {
     return;
   }
   if (existing.authorId !== req.userId) {
-    res.status(403).json({ error: "본인이 작성한 기도문만 삭제할 수 있습니다." });
-    return;
+    const currentUser = await prisma.member.findUnique({ where: { id: req.userId } });
+    if (!currentUser?.isLeader) {
+      res.status(403).json({ error: "본인이 작성한 기도문만 삭제할 수 있습니다." });
+      return;
+    }
   }
 
   await prisma.prayerText.delete({ where: { id: req.params.id } });
