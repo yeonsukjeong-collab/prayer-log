@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { BenedictionCard } from "../components/BenedictionCard";
+import { BulletinCard } from "../components/BulletinCard";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { PastorPrayerForm } from "../components/PastorPrayerForm";
 import { PastorPrayerItem } from "../components/PastorPrayerItem";
@@ -49,6 +50,8 @@ export function ChurchPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
       <BenedictionCard benediction={benediction} />
+
+      <BulletinCard />
 
       <section className="flex flex-col rounded-xl bg-white p-3 shadow-sm">
         <PastorPrayerForm onSubmit={handleCreatePrayer} />

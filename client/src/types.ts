@@ -74,3 +74,9 @@ export interface PastorPrayer {
   updatedAt: string;
   recordedBy: AuthorSummary;
 }
+
+export interface Bulletin {
+  title: string;
+  detailUrl: string;
+  thumbnailDataUrl: string | null;
+}
