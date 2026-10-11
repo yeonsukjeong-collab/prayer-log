@@ -37,22 +37,35 @@ export function BulletinCard() {
           </a>
         </p>
       ) : (
-        <a
-          href={bulletin.detailUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 flex items-center gap-3"
-        >
-          {bulletin.thumbnailDataUrl && (
-            <img
-              src={bulletin.thumbnailDataUrl}
-              alt={bulletin.title}
-              className="h-20 w-20 shrink-0 rounded-lg object-cover"
-            />
+        <>
+          <a
+            href={bulletin.detailUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 flex items-center gap-3"
+          >
+            {bulletin.thumbnailDataUrl && (
+              <img
+                src={bulletin.thumbnailDataUrl}
+                alt={bulletin.title}
+                className="h-20 w-20 shrink-0 rounded-lg object-cover"
+              />
+            )}
+            <span className="flex-1 text-sm font-bold text-slate-800">{bulletin.title}</span>
+            <span className="shrink-0 text-xs text-brand-600">원본보기 ›</span>
+          </a>
+
+          {bulletin.pastoralLetterDataUrl && (
+            <div className="mt-3 border-t border-slate-100 pt-3">
+              <h3 className="text-sm font-bold text-blue-700">목회 편지</h3>
+              <img
+                src={bulletin.pastoralLetterDataUrl}
+                alt="목회 편지"
+                className="mt-2 w-full rounded-lg border border-slate-100"
+              />
+            </div>
           )}
-          <span className="flex-1 text-sm font-bold text-slate-800">{bulletin.title}</span>
-          <span className="shrink-0 text-xs text-brand-600">원본보기 ›</span>
-        </a>
+        </>
       )}
     </section>
   );

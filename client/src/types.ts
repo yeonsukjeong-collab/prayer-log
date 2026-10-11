@@ -79,4 +79,5 @@ export interface Bulletin {
   title: string;
   detailUrl: string;
   thumbnailDataUrl: string | null;
+  pastoralLetterDataUrl: string | null;
 }

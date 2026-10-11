@@ -14,11 +14,28 @@ interface Bulletin {
   title: string;
   detailUrl: string;
   thumbnailDataUrl: string | null;
+  pastoralLetterDataUrl: string | null;
   fetchedAt: number;
 }
 
 let cache: Bulletin | null = null;
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+// 교회 주보는 매주 같은 쪽 순서(표지 → 합심기도제목 → 감사제목 → ... → 목회편지 → ...)를
+// 템플릿으로 사용하며, 목회편지는 항상 갤러리의 9번째 이미지(0-based index 8)에 위치합니다.
+const PASTORAL_LETTER_IMAGE_INDEX = 8;
+
+async function fetchImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const imgRes = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    if (!imgRes.ok) return null;
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
+    const contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
+    return `data:${contentType};base64,${buffer.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 
 async function fetchLatestBulletin(): Promise<Bulletin> {
   const listRes = await fetch(LIST_URL, { headers: { "User-Agent": USER_AGENT } });
@@ -45,21 +62,34 @@ async function fetchLatestBulletin(): Promise<Bulletin> {
 
   const detailUrl = new URL(detailHref, SITE_ORIGIN).toString();
 
-  let thumbnailDataUrl: string | null = null;
-  if (thumbnailUrl) {
-    try {
-      const imgRes = await fetch(thumbnailUrl, { headers: { "User-Agent": USER_AGENT } });
-      if (imgRes.ok) {
-        const buffer = Buffer.from(await imgRes.arrayBuffer());
-        const contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
-        thumbnailDataUrl = `data:${contentType};base64,${buffer.toString("base64")}`;
-      }
-    } catch {
-      // thumbnail is optional — fall through with null and still show the title/link
-    }
-  }
+  const [thumbnailDataUrl, pastoralLetterDataUrl] = await Promise.all([
+    thumbnailUrl ? fetchImageAsDataUrl(thumbnailUrl) : Promise.resolve(null),
+    fetchPastoralLetterDataUrl(detailUrl),
+  ]);
 
-  return { title, detailUrl, thumbnailDataUrl, fetchedAt: Date.now() };
+  return { title, detailUrl, thumbnailDataUrl, pastoralLetterDataUrl, fetchedAt: Date.now() };
+}
+
+async function fetchPastoralLetterDataUrl(detailUrl: string): Promise<string | null> {
+  try {
+    const detailRes = await fetch(detailUrl, { headers: { "User-Agent": USER_AGENT } });
+    if (!detailRes.ok) return null;
+    const html = await detailRes.text();
+    const $ = cheerio.load(html);
+
+    const pageImages = $("#lightgallery img[id^='ANYBOARDVIEWIMAGE_']")
+      .map((_, el) => $(el).attr("src"))
+      .get()
+      .filter((src): src is string => Boolean(src));
+
+    const pastoralLetterSrc = pageImages[PASTORAL_LETTER_IMAGE_INDEX];
+    if (!pastoralLetterSrc) return null;
+
+    const pastoralLetterUrl = new URL(pastoralLetterSrc, SITE_ORIGIN).toString();
+    return await fetchImageAsDataUrl(pastoralLetterUrl);
+  } catch {
+    return null;
+  }
 }
 
 router.get("/latest", async (_req, res) => {
