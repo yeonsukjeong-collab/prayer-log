@@ -24,10 +24,24 @@ let inFlightFetch: Promise<Bulletin> | null = null;
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 // 목회편지는 OCR로 쪽 제목을 읽어서 찾습니다 — 교회가 주보 쪽 순서를 바꿔도 깨지지 않도록 하기 위함입니다.
-// 매주 같은 자리(최근에는 9번째 쪽)에 실리는 경향이 있어, 마지막으로 찾은 위치부터 바깥쪽으로 검색해
-// 보통의 경우(순서가 그대로인 주)는 OCR을 한 번만 돌리면 되도록 합니다.
+// 거의 매주 9번째 쪽에 실리므로, 속도를 위해 9쪽 → 7쪽 → 10쪽 순으로 딱 3곳만 확인하고
+// (매주 전체를 다 검색하면 느립니다), 찾은 위치를 기억해 두었다가 다음 주에는 그 위치부터 확인합니다.
 const PASTORAL_LETTER_KEYWORD = "목회편지";
-let lastKnownPastoralLetterIndex = 8;
+let lastKnownPastoralLetterIndex = 8; // 0-based (9번째 쪽)
+const SEARCH_OFFSETS = [0, -2, 1]; // 9쪽 → 7쪽 → 10쪽
+
+// OCR 엔진 초기화(코어·한국어 학습 데이터 로딩) 비용이 꽤 커서, 요청마다 새로 만들지 않고
+// 서버 프로세스 동안 하나만 만들어 재사용합니다.
+let workerPromise: ReturnType<typeof createWorker> | null = null;
+function getWorker() {
+  if (!workerPromise) {
+    workerPromise = createWorker("kor").catch((err) => {
+      workerPromise = null;
+      throw err;
+    });
+  }
+  return workerPromise;
+}
 
 async function fetchImageAsDataUrl(
   url: string,
@@ -43,20 +57,15 @@ async function fetchImageAsDataUrl(
   }
 }
 
-// startAt부터 바깥쪽으로(startAt, startAt-1, startAt+1, startAt-2, ...) 검색 순서를 만듭니다.
-function searchOrder(length: number, startAt: number): number[] {
-  const order: number[] = [];
+function candidateIndexes(length: number, startAt: number): number[] {
   const seen = new Set<number>();
-  const push = (i: number) => {
-    if (i >= 0 && i < length && !seen.has(i)) {
-      seen.add(i);
-      order.push(i);
+  const order: number[] = [];
+  for (const offset of SEARCH_OFFSETS) {
+    const index = startAt + offset;
+    if (index >= 0 && index < length && !seen.has(index)) {
+      seen.add(index);
+      order.push(index);
     }
-  };
-  push(startAt);
-  for (let offset = 1; order.length < length; offset++) {
-    push(startAt - offset);
-    push(startAt + offset);
   }
   return order;
 }
@@ -75,25 +84,21 @@ async function findPastoralLetterDataUrl(detailUrl: string): Promise<string | nu
 
     if (pageImages.length === 0) return null;
 
-    const worker = await createWorker("kor");
-    try {
-      const startAt = Math.min(lastKnownPastoralLetterIndex, pageImages.length - 1);
-      for (const index of searchOrder(pageImages.length, startAt)) {
-        const pageUrl = new URL(pageImages[index], SITE_ORIGIN).toString();
-        const fetched = await fetchImageAsDataUrl(pageUrl);
-        if (!fetched) continue;
+    const worker = await getWorker();
+    const startAt = Math.min(lastKnownPastoralLetterIndex, pageImages.length - 1);
+    for (const index of candidateIndexes(pageImages.length, startAt)) {
+      const pageUrl = new URL(pageImages[index], SITE_ORIGIN).toString();
+      const fetched = await fetchImageAsDataUrl(pageUrl);
+      if (!fetched) continue;
 
-        const { data } = await worker.recognize(fetched.buffer);
-        const normalized = data.text.replace(/\s+/g, "");
-        if (normalized.includes(PASTORAL_LETTER_KEYWORD)) {
-          lastKnownPastoralLetterIndex = index;
-          return fetched.dataUrl;
-        }
+      const { data } = await worker.recognize(fetched.buffer);
+      const normalized = data.text.replace(/\s+/g, "");
+      if (normalized.includes(PASTORAL_LETTER_KEYWORD)) {
+        lastKnownPastoralLetterIndex = index;
+        return fetched.dataUrl;
       }
-      return null;
-    } finally {
-      await worker.terminate();
     }
+    return null;
   } catch {
     return null;
   }
