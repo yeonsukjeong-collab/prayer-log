@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
+import { LoadingSpinner } from "./LoadingSpinner";
 import type { Bulletin } from "../types";
 
 export function BulletinCard() {
@@ -23,7 +24,7 @@ export function BulletinCard() {
       <h2 className="text-sm font-bold text-blue-700">주보</h2>
 
       {loading ? (
-        <p className="mt-2 text-sm text-slate-400">불러오는 중...</p>
+        <LoadingSpinner />
       ) : error || !bulletin ? (
         <p className="mt-2 text-sm text-slate-400">
           주보를 불러오지 못했어요.{" "}

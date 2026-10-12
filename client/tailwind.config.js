@@ -12,15 +12,6 @@ export default {
           700: '#4338ca',
         },
       },
-      keyframes: {
-        'progress-indeterminate': {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(300%)' },
-        },
-      },
-      animation: {
-        'progress-indeterminate': 'progress-indeterminate 1.2s ease-in-out infinite',
-      },
     },
   },
   plugins: [],
