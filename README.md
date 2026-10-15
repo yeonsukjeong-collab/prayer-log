@@ -21,6 +21,7 @@ npm run install:all
 ```
 DATABASE_URL=postgresql://...   # Render Postgres의 External Database URL
 ACCESS_PASSWORD=...             # 목장원 전체가 사용할 공유 암호
+LEADER_PASSWORD=...             # 목자(정연석) 전용 암호 (비워두면 공유 암호 사용)
 JWT_SECRET=...                  # openssl rand -hex 32 로 생성
 CLIENT_URL=http://localhost:5173
 ```
@@ -64,6 +65,12 @@ npm run dev
 
 **정연석**, **김선경**이 웹관리자로 지정되어 있습니다(`server/prisma/seed.ts`의 `isAdmin: true`). 웹관리자로 로그인하면 "여러 명 기도제목 한번에 붙여넣기" 기능이 보입니다 — 일반 목장원에게는 이 기능이 표시되지 않습니다.
 
+### 접속 기록
+
+목자(**정연석**, `isLeader: true`)가 상단의 본인 이름을 누르면 접속 기록 팝업이 열립니다. 기간(최근 1주/2주/1달/전체기간/직접입력)별로 목장원 이름과 접속 횟수를 보여줍니다. 다른 목장원에게는 아무 동작도 하지 않고, 누를 수 있다는 표시도 없습니다.
+
+- 로그인할 때와 앱을 열 때(`/api/auth/me`) 기록되며, 같은 사람이 30분 안에 다시 접속하면 한 번으로 셉니다.
+
 ## 3. Render 배포
 
 이 저장소를 GitHub에 올린 뒤 Render 대시보드에서 "New Web Service"로 연결하거나, 저장소 루트의 `render.yaml`(Blueprint)을 이용해 한 번에 생성할 수 있습니다.
@@ -72,6 +79,7 @@ Render 서비스에 아래 환경변수를 설정하세요 (기존 Postgres 인�
 
 - `DATABASE_URL` — 기존 Render Postgres의 **External Database URL** (Internal Database URL은 웹 서비스와 DB가 같은 리전에 있을 때만 동작합니다. 웹 서비스를 DB와 같은 리전으로 만들었다면 Internal URL을 써도 됩니다.)
 - `ACCESS_PASSWORD` — 목장원 전체가 사용할 공유 암호
+- `LEADER_PASSWORD` — 목자(정연석) 전용 암호. 설정하면 목자는 공유 암호 대신 이 암호로만 로그인합니다.
 - `JWT_SECRET` (Blueprint 사용 시 자동 생성됨)
 - `CLIENT_URL` — 배포된 앱의 URL (예: `https://prayer-log.onrender.com`)
 

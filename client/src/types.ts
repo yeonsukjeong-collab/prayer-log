@@ -81,3 +81,8 @@ export interface Bulletin {
   thumbnailDataUrl: string | null;
   pastoralLetterDataUrl: string | null;
 }
+
+export interface AccessLogSummary {
+  name: string;
+  count: number;
+}

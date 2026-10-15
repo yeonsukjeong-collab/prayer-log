@@ -20,6 +20,7 @@ model Member {
   photoComments  PhotoComment[]
   benedictions   Benediction[]
   pastorPrayers  PastorPrayer[]
+  accessLogs     AccessLog[]
 
   @@map("prayer_log_members")
 }
@@ -114,4 +115,16 @@ model PastorPrayer {
 
   @@index([prayerDate])
   @@map("prayer_log_pastor_prayers")
+}
+
+model AccessLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([memberId, createdAt])
+  @@map("prayer_log_access_logs")
 }

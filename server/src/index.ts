@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./env.js";
+import accessLogsRouter from "./routes/accessLogs.js";
 import authRouter from "./routes/auth.js";
 import benedictionRouter from "./routes/benediction.js";
 import bulletinRouter from "./routes/bulletin.js";
@@ -27,6 +28,7 @@ app.use(express.json({ limit: "12mb" }));
 app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
+app.use("/api/access-logs", accessLogsRouter);
 app.use("/api/members", membersRouter);
 app.use("/api/photos", photosRouter);
 app.use("/api/prayer-requests", prayerRequestsRouter);
