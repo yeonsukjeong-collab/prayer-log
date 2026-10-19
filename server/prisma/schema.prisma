@@ -20,6 +20,7 @@ model Member {
   photoComments  PhotoComment[]
   benedictions   Benediction[]
   pastorPrayers  PastorPrayer[]
+  meditations    Meditation[]
 
   @@map("prayer_log_members")
 }
@@ -102,6 +103,7 @@ model Benediction {
   @@map("prayer_log_benediction")
 }
 
+// 화면에서는 말씀 묵상으로 대체되었지만, 기존 기도문을 보존하기 위해 테이블은 남겨둡니다.
 model PastorPrayer {
   id         String   @id @default(uuid())
   content    String
@@ -114,4 +116,22 @@ model PastorPrayer {
 
   @@index([prayerDate])
   @@map("prayer_log_pastor_prayers")
+}
+
+model Meditation {
+  id         String   @id @default(uuid())
+  book       String
+  chapter    Int
+  verseStart Int
+  verseEnd   Int?
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  authorId String
+  author   Member @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("prayer_log_meditations")
 }

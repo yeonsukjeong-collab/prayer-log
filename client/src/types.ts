@@ -66,13 +66,16 @@ export interface Benediction {
   updatedBy: AuthorSummary;
 }
 
-export interface PastorPrayer {
+export interface Meditation {
   id: string;
+  book: string;
+  chapter: number;
+  verseStart: number;
+  verseEnd: number | null;
   content: string;
-  prayerDate: string;
   createdAt: string;
   updatedAt: string;
-  recordedBy: AuthorSummary;
+  author: AuthorSummary;
 }
 
 export interface Bulletin {
