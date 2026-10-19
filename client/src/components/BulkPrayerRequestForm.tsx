@@ -7,11 +7,11 @@ interface Props {
   onSubmit: (entries: { content: string; authorId: string }[]) => Promise<void>;
 }
 
-const PLACEHOLDER = `(이름)
+const PLACEHOLDER = `이름)
 - 기도제목1
 - 기도제목2
 
-(이름)
+이름)
 - 기도제목1
 - 기도제목2`;
 

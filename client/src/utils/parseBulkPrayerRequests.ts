@@ -5,13 +5,17 @@ export interface ParsedGroup {
 
 /**
  * Parses pasted text like:
- * (정연석)
+ * 정연석)
  * - 기도제목1
  * - 기도제목2 (줄바꿈으로
  *   이어지는 내용)
  *
- * (김선경)
+ * 김선경)
  * - 기도제목1
+ *
+ * The older "(정연석)" header form is still accepted. A header must be a
+ * single word with no spaces, so a wrapped line ending in ")" such as
+ * "이어지는 내용)" is not mistaken for a name.
  *
  * A line not starting with a bullet marker is treated as a continuation
  * of the previous bullet (wrapped text), since long items are often
@@ -26,7 +30,7 @@ export function parseBulkPrayerRequests(text: string): ParsedGroup[] {
     const line = rawLine.trim();
     if (!line) continue;
 
-    const headerMatch = line.match(/^\((.+)\)$/);
+    const headerMatch = line.match(/^\(?([^\s()\-•*][^\s()]*)\)$/);
     if (headerMatch) {
       current = { rawName: headerMatch[1].trim(), items: [] };
       groups.push(current);

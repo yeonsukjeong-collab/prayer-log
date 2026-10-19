@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AccessLogModal } from "./AccessLogModal";
 import { FontSizeControl } from "./FontSizeControl";
 
 function NavTab({ to, end, icon, label }: { to: string; end?: boolean; icon: string; label: string }) {
@@ -35,7 +33,6 @@ function NavTab({ to, end, icon, label }: { to: string; end?: boolean; icon: str
 
 export function NavBar() {
   const { user, logout } = useAuth();
-  const [showAccessLog, setShowAccessLog] = useState(false);
 
   return (
     <header className="sticky top-0 z-10 bg-slate-50 px-4 pb-3 pt-3">
@@ -50,11 +47,7 @@ export function NavBar() {
           {user && (
             <div className="flex flex-wrap items-center gap-2">
               <FontSizeControl />
-              {/* 목자만 이름을 눌러 접속 기록을 볼 수 있습니다. 누를 수 있다는 표시는 일부러 하지 않습니다. */}
-              <span
-                onClick={user.isLeader ? () => setShowAccessLog(true) : undefined}
-                className="rounded-full bg-white/80 px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm"
-              >
+              <span className="rounded-full bg-white/80 px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm">
                 {user.name}
               </span>
               <button
@@ -73,7 +66,6 @@ export function NavBar() {
           <NavTab to="/church" icon="⛪" label="은혜샘물교회" />
         </nav>
       </div>
-      {showAccessLog && <AccessLogModal onClose={() => setShowAccessLog(false)} />}
     </header>
   );
 }

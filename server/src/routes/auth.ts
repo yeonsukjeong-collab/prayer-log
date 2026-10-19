@@ -4,7 +4,6 @@ import { env } from "../env.js";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
 import { sessionCookie, signSession } from "../auth/jwt.js";
-import { recordAccess } from "./accessLogs.js";
 
 const router = Router();
 
@@ -30,7 +29,6 @@ router.post("/login", async (req, res) => {
 
   const token = signSession({ userId: member.id });
   res.cookie(sessionCookie.name, token, sessionCookie.options);
-  await recordAccess(member.id);
   res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader, isAdmin: member.isAdmin } });
 });
 
@@ -45,7 +43,6 @@ router.get("/me", requireAuth, async (req, res) => {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
-  await recordAccess(member.id);
   res.json({ user: { id: member.id, name: member.name, isLeader: member.isLeader, isAdmin: member.isAdmin } });
 });
 
