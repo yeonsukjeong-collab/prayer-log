@@ -10,6 +10,7 @@ import bulletinRouter from "./routes/bulletin.js";
 import meditationsRouter from "./routes/meditations.js";
 import membersRouter from "./routes/members.js";
 import photosRouter from "./routes/photos.js";
+import praiseRouter from "./routes/praise.js";
 import prayerRequestsRouter from "./routes/prayerRequests.js";
 import prayerTextsRouter from "./routes/prayerTexts.js";
 
@@ -34,6 +35,7 @@ app.use("/api/prayer-texts", prayerTextsRouter);
 app.use("/api/benediction", benedictionRouter);
 app.use("/api/meditations", meditationsRouter);
 app.use("/api/bulletin", bulletinRouter);
+app.use("/api/praise", praiseRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });

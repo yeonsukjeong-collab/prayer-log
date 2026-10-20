@@ -66,6 +66,13 @@ export interface Benediction {
   updatedBy: AuthorSummary;
 }
 
+export interface Praise {
+  date: string;
+  songTitle: string;
+  videoId: string;
+  videoTitle: string;
+}
+
 export interface Meditation {
   id: string;
   book: string;

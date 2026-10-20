@@ -7,6 +7,7 @@ import type { MeditationPayload } from "../components/MeditationFields";
 import { MeditationForm } from "../components/MeditationForm";
 import { MeditationItem } from "../components/MeditationItem";
 import { MemberPeriodFilters } from "../components/MemberPeriodFilters";
+import { PraiseCard } from "../components/PraiseCard";
 import type { Benediction, Meditation, Member } from "../types";
 import { localDayBounds, PERIOD_LABELS, rangeForPreset, type PeriodPreset } from "../utils/date";
 import { exportMeditationsToExcel } from "../utils/exportExcel";
@@ -89,6 +90,8 @@ export function ChurchPage() {
       <BenedictionCard benediction={benediction} />
 
       <BulletinCard />
+
+      <PraiseCard />
 
       <section className="rounded-xl bg-white p-3 shadow-sm">
         <MeditationForm onSubmit={handleCreateMeditation} />
