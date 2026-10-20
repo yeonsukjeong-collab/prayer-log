@@ -29,6 +29,21 @@ export function rangeForPreset(preset: Exclude<PeriodPreset, "custom">): { start
   return { start: toDateInputValue(start), end: toDateInputValue(end) };
 }
 
+/**
+ * "YYYY-MM-DD" 기간을 현지 시간 기준 [startAt, endBefore) 시각(ISO)으로 바꿉니다.
+ * 작성 시각처럼 시각까지 저장된 값을 현지 날짜로 거를 때 씁니다.
+ */
+export function localDayBounds(start: string, end: string): { startAt?: string; endBefore?: string } {
+  const toLocalMidnight = (value: string, addDays = 0) => {
+    const [y, m, d] = value.split("-").map(Number);
+    return new Date(y, m - 1, d + addDays).toISOString();
+  };
+  return {
+    ...(start ? { startAt: toLocalMidnight(start) } : {}),
+    ...(end ? { endBefore: toLocalMidnight(end, 1) } : {}),
+  };
+}
+
 export const PERIOD_LABELS: Record<PeriodPreset, string> = {
   all: "전체기간",
   "1w": "최근1주간",

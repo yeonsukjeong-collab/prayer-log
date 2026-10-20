@@ -8,8 +8,34 @@ router.use(requireAuth);
 
 const include = { author: { select: { id: true, name: true } } } as const;
 
-router.get("/", async (_req, res) => {
+// 기간은 작성 시각(createdAt) 기준입니다. 날짜만 받으면 UTC 자정으로 계산되어 현지 날짜와
+// 어긋나므로, 브라우저가 현지 자정을 기준으로 계산한 시각(startAt 이상, endBefore 미만)을 받습니다.
+const listQuerySchema = z.object({
+  authorId: z.string().uuid().optional(),
+  startAt: z.coerce.date().optional(),
+  endBefore: z.coerce.date().optional(),
+});
+
+router.get("/", async (req, res) => {
+  const parsed = listQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid query" });
+    return;
+  }
+  const { authorId, startAt, endBefore } = parsed.data;
+
   const items = await prisma.meditation.findMany({
+    where: {
+      ...(authorId ? { authorId } : {}),
+      ...(startAt || endBefore
+        ? {
+            createdAt: {
+              ...(startAt ? { gte: startAt } : {}),
+              ...(endBefore ? { lt: endBefore } : {}),
+            },
+          }
+        : {}),
+    },
     orderBy: { createdAt: "desc" },
     include,
   });

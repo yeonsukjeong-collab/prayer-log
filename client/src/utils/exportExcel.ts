@@ -1,4 +1,6 @@
-import type { PrayerRequest, PrayerText } from "../types";
+import type { Meditation, PrayerRequest, PrayerText } from "../types";
+import { formatVerseRef } from "./bible";
+import { richTextToPlain } from "./richText";
 
 export async function exportPrayerRequestsToExcel(items: PrayerRequest[], filenameHint: string) {
   const XLSX = await import("xlsx");
@@ -49,4 +51,26 @@ export async function exportPrayerTextsToExcel(items: PrayerText[], filenameHint
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "릴레이 기도");
   XLSX.writeFile(workbook, `릴레이기도_${filenameHint}.xlsx`);
+}
+
+export async function exportMeditationsToExcel(items: Meditation[], filenameHint: string) {
+  const XLSX = await import("xlsx");
+
+  const rows = items.map((item) => {
+    const date = new Date(item.createdAt);
+    return {
+      작성자: item.author.name,
+      날짜: date.toLocaleDateString("ko-KR"),
+      요일: date.toLocaleDateString("ko-KR", { weekday: "short" }),
+      말씀구절: formatVerseRef(item),
+      말씀: richTextToPlain(item.content),
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet["!cols"] = [{ wch: 10 }, { wch: 12 }, { wch: 6 }, { wch: 24 }, { wch: 60 }];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "말씀 묵상");
+  XLSX.writeFile(workbook, `말씀묵상_${filenameHint}.xlsx`);
 }
