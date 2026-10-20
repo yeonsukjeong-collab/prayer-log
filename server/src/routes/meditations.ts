@@ -22,7 +22,8 @@ const verseSchema = z
     chapter: z.number().int().min(1).max(150),
     verseStart: z.number().int().min(1).max(200),
     verseEnd: z.number().int().min(1).max(200).nullable().optional(),
-    content: z.string().trim().min(1).max(10000),
+    // 굵게·글자색 서식이 담긴 HTML이라 일반 텍스트보다 길어질 수 있습니다.
+    content: z.string().trim().min(1).max(50000),
   })
   .refine((v) => v.verseEnd == null || v.verseEnd >= v.verseStart, {
     message: "끝 절은 시작 절보다 같거나 커야 합니다.",

@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import type { Meditation } from "../types";
 import { formatVerseRef } from "../utils/bible";
 import { formatDateWithWeekday } from "../utils/date";
+import { toRichHtml } from "../utils/richText";
 import { toDraft, toPayload } from "../utils/meditation";
 import { MeditationFields, type MeditationDraft, type MeditationPayload } from "./MeditationFields";
 
@@ -40,7 +41,7 @@ export function MeditationItem({ item, onUpdate, onDelete }: Props) {
   }
 
   return (
-    <li className="border-t border-slate-100 py-3 first:border-t-0 first:pt-0">
+    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-sm font-bold text-blue-700">{formatVerseRef(item)}</p>
@@ -77,7 +78,11 @@ export function MeditationItem({ item, onUpdate, onDelete }: Props) {
           </div>
         </div>
       ) : (
-        <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{item.content}</p>
+        <div
+          className="mt-2 whitespace-pre-wrap text-sm text-slate-700"
+          // toRichHtml은 굵게·글자색 외의 HTML을 모두 걸러냅니다.
+          dangerouslySetInnerHTML={{ __html: toRichHtml(item.content) }}
+        />
       )}
     </li>
   );

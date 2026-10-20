@@ -46,15 +46,17 @@ export function ChurchPage() {
 
       <BulletinCard />
 
-      <section className="flex flex-col rounded-xl bg-white p-3 shadow-sm">
+      <section className="rounded-xl bg-white p-3 shadow-sm">
         <MeditationForm onSubmit={handleCreateMeditation} />
+      </section>
 
+      <section>
         {meditations.length === 0 ? (
-          <p className="mt-4 border-t border-slate-100 pt-4 text-center text-sm text-slate-400">
+          <p className="rounded-xl bg-white/60 p-4 text-center text-sm text-slate-400">
             아직 기록된 말씀이 없어요.
           </p>
         ) : (
-          <ul className="mt-4 flex flex-col border-t border-slate-100 pt-3">
+          <ul className="flex flex-col gap-2">
             {meditations.map((item) => (
               <MeditationItem
                 key={item.id}
