@@ -6,6 +6,7 @@ export function PraiseCard() {
   const [praise, setPraise] = useState<Praise | null>(null);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [loadingNext, setLoadingNext] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -15,6 +16,20 @@ export function PraiseCard() {
       .catch(() => setPraise(null))
       .finally(() => setLoading(false));
   }, []);
+
+  // 다음 곡으로 넘어갑니다. 재생 중이었다면 다음 곡도 바로 재생됩니다.
+  async function handleNext() {
+    if (!praise) return;
+    setLoadingNext(true);
+    try {
+      const res = await api.get<{ item: Praise }>(`/praise?index=${praise.index + 1}`);
+      setPraise(res.item);
+    } catch {
+      alert("다음 찬양을 불러오지 못했어요. 잠시 후 다시 눌러 주세요.");
+    } finally {
+      setLoadingNext(false);
+    }
+  }
 
   // 아이폰 사파리처럼 화면 요소의 전체화면을 지원하지 않는 브라우저에서는 버튼을 숨기고,
   // 유튜브 플레이어 자체의 전체화면 버튼을 쓰도록 합니다.
@@ -26,7 +41,18 @@ export function PraiseCard() {
 
   return (
     <section className="rounded-xl bg-white p-3 shadow-sm">
-      <h2 className="text-sm font-bold text-blue-700">오늘의 찬양</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-bold text-blue-700">오늘의 찬양</h2>
+        {praise && (
+          <button
+            onClick={handleNext}
+            disabled={loadingNext}
+            className="rounded-lg bg-slate-50 px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-slate-100 disabled:opacity-50"
+          >
+            {loadingNext ? "찾는 중..." : "다음 곡 ›"}
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <p className="mt-2 text-sm text-slate-400">불러오는 중...</p>

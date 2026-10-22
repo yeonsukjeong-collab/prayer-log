@@ -76,12 +76,17 @@ const MAX_SECONDS = 8 * 60;
 
 interface Praise {
   date: string;
+  /** 그날 찾은 곡 중 몇 번째인지(0부터). "다음" 버튼을 누를 때마다 1씩 늘어납니다. */
+  index: number;
   songTitle: string;
   videoId: string;
   videoTitle: string;
 }
 
-const cache = new Map<string, Praise>();
+/** 그날 찾은 곡들과, 다음에 검색해 볼 후보 곡의 위치입니다. 날짜가 바뀌면 새로 시작합니다. */
+let today: { date: string; found: Praise[]; nextCandidate: number } | null = null;
+// 여러 사람이 동시에 "다음"을 눌러도 같은 곡을 두 번 검색하지 않도록 한 번에 하나씩 처리합니다.
+let queue: Promise<unknown> = Promise.resolve();
 
 /** 자카르타 시간 기준 오늘 날짜(YYYY-MM-DD)입니다. 모든 목장원이 같은 날 같은 곡을 봅니다. */
 function todayInJakarta(): string {
@@ -169,27 +174,46 @@ export async function findSingleSongVideo(songTitle: string): Promise<SearchResu
   return null;
 }
 
-async function getTodaysPraise(): Promise<Praise> {
+async function findPraise(index: number): Promise<Praise> {
   const date = todayInJakarta();
-  const cached = cache.get(date);
-  if (cached) return cached;
+  if (today?.date !== date) today = { date, found: [], nextCandidate: 0 };
+  const state = today;
+  const order = songOrderFor(date);
 
-  // 그날 순서대로 곡을 시도하다가, 조건에 맞는 영상을 처음 찾은 곡으로 정합니다.
-  for (const songTitle of songOrderFor(date).slice(0, 5)) {
+  // 그날 순서대로 곡을 검색해, 조건에 맞는 영상을 찾은 곡만 차례로 쌓습니다.
+  while (state.found.length <= index && state.nextCandidate < order.length) {
+    const songTitle = order[state.nextCandidate++];
     const video = await findSingleSongVideo(songTitle);
     if (video) {
-      const praise = { date, songTitle, videoId: video.videoId, videoTitle: video.title };
-      cache.clear();
-      cache.set(date, praise);
-      return praise;
+      state.found.push({
+        date,
+        index: state.found.length,
+        songTitle,
+        videoId: video.videoId,
+        videoTitle: video.title,
+      });
     }
   }
-  throw new Error("오늘의 찬양 영상을 찾지 못했습니다.");
+
+  if (state.found.length === 0) throw new Error("오늘의 찬양 영상을 찾지 못했습니다.");
+  // 목록을 다 돌았으면 처음 곡부터 다시 보여줍니다.
+  return state.found[index % state.found.length];
 }
 
-router.get("/", async (_req, res) => {
+function getPraise(index: number): Promise<Praise> {
+  const result = queue.then(() => findPraise(index));
+  queue = result.catch(() => {});
+  return result;
+}
+
+router.get("/", async (req, res) => {
+  const index = Number(req.query.index ?? 0);
+  if (!Number.isInteger(index) || index < 0 || index > 1000) {
+    res.status(400).json({ error: "Invalid index" });
+    return;
+  }
   try {
-    res.json({ item: await getTodaysPraise() });
+    res.json({ item: await getPraise(index) });
   } catch (err) {
     console.error(err);
     res.status(502).json({ error: err instanceof Error ? err.message : "오늘의 찬양을 불러오지 못했습니다." });

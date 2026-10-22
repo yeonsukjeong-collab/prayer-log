@@ -68,6 +68,7 @@ export interface Benediction {
 
 export interface Praise {
   date: string;
+  index: number;
   songTitle: string;
   videoId: string;
   videoTitle: string;
