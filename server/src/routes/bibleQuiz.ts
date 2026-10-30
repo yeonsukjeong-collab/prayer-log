@@ -1,12 +1,15 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { Router } from "express";
-import { z } from "zod";
+// zodOutputFormat은 zod v4 스키마를 받으므로 이 파일만 zod/v4를 씁니다.
+import { z } from "zod/v4";
 import { env } from "../env.js";
 import { requireAuth } from "../auth/middleware.js";
 
 const router = Router();
 router.use(requireAuth);
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const CLAUDE_MODEL = "claude-opus-5-5";
 
 // 화면에서는 난이도 키만 받고, 프롬프트에 들어갈 설명은 서버에서 정합니다.
 const DIFFICULTY_PROMPTS = {
@@ -22,61 +25,56 @@ const requestSchema = z.object({
 });
 
 const questionSchema = z.object({
-  question: z.string().trim().min(1),
-  options: z.array(z.string().trim().min(1)).length(4),
-  answer: z.string().trim().min(1),
-  explanation: z.string().trim().optional().default(""),
+  question: z.string(),
+  options: z.array(z.string()),
+  answer: z.string(),
+  explanation: z.string(),
 });
+
+// Claude가 이 형식의 JSON으로만 답하도록 구조화 출력(structured outputs)으로 지정합니다.
+const quizSchema = z.object({ questions: z.array(questionSchema) });
 
 type Question = z.infer<typeof questionSchema>;
 
-function buildPrompt(scope: string, count: number, difficulty: keyof typeof DIFFICULTY_PROMPTS) {
-  return `
-너는 성경 퀴즈를 출제하는 전문 레크리에이션 강사야.
-성경의 '${scope}' 부분에서 객관식 퀴즈 ${count}개를 내줘.
-난이도는 ${DIFFICULTY_PROMPTS[difficulty]} 수준으로 해줘.
-보기는 반드시 4개이고, 정답은 보기 중 하나와 글자까지 정확히 같아야 해.
-반드시 아래의 JSON 배열 형식으로만 대답해.
+const client = env.anthropicApiKey ? new Anthropic({ apiKey: env.anthropicApiKey }) : null;
 
-[
-  {"question": "질문 내용", "options": ["보기1", "보기2", "보기3", "보기4"], "answer": "정답 텍스트 (보기 중 하나와 정확히 일치)", "explanation": "해설 및 관련 성경 구절"}
-]
-`;
+function buildPrompt(scope: string, count: number, difficulty: keyof typeof DIFFICULTY_PROMPTS) {
+  return `너는 교회 소그룹 모임에서 성경 퀴즈를 출제하는 레크리에이션 강사야.
+성경의 '${scope}' 부분에서 객관식 퀴즈 ${count}개를 한국어로 내줘.
+난이도는 ${DIFFICULTY_PROMPTS[difficulty]} 수준으로 해줘.
+
+- 보기는 반드시 4개이고, answer는 보기 중 하나와 글자까지 정확히 같아야 해.
+- 정답이 성경 본문으로 분명하게 확인되는 문제만 내줘. 해석이 갈리는 내용은 피해줘.
+- explanation에는 정답에 대한 짧은 해설과 근거가 되는 성경 구절(예: 창세기 3:1)을 적어줘.`;
 }
 
-async function generateQuiz(apiKey: string, prompt: string): Promise<Question[]> {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" },
-      }),
-    },
-  );
-  if (!res.ok) {
-    throw new Error(`Gemini 요청 실패 (${res.status}): ${await res.text()}`);
-  }
-
-  const data = (await res.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
-  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  const parsed: unknown = JSON.parse(text);
-  if (!Array.isArray(parsed)) throw new Error("Gemini 응답이 배열이 아닙니다.");
-
-  // 형식이 맞지 않거나 정답이 보기에 없는 문제는 빼고 보여줍니다.
-  return parsed.flatMap((item) => {
-    const q = questionSchema.safeParse(item);
-    if (!q.success || !q.data.options.includes(q.data.answer)) return [];
-    return [q.data];
+async function generateQuiz(anthropic: Anthropic, prompt: string): Promise<Question[]> {
+  const response = await anthropic.beta.messages.parse({
+    model: CLAUDE_MODEL,
+    max_tokens: 16000,
+    // Claude가 안전 정책으로 거절하면 같은 요청을 다른 모델로 자동으로 다시 시도합니다.
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    output_config: { format: zodOutputFormat(quizSchema) },
+    messages: [{ role: "user", content: prompt }],
   });
+
+  if (response.stop_reason === "refusal") throw new Error("Claude가 퀴즈 생성을 거절했습니다.");
+  const questions = response.parsed_output?.questions ?? [];
+
+  // 보기가 4개가 아니거나 정답이 보기에 없는 문제는 빼고 보여줍니다.
+  return questions
+    .map((q) => ({
+      question: q.question.trim(),
+      options: q.options.map((o) => o.trim()),
+      answer: q.answer.trim(),
+      explanation: q.explanation.trim(),
+    }))
+    .filter((q) => q.question && q.options.length === 4 && q.options.includes(q.answer));
 }
 
 router.post("/", async (req, res) => {
-  if (!env.geminiApiKey) {
+  if (!client) {
     res.status(503).json({ error: "성경퀴즈가 아직 설정되지 않았어요. 관리자에게 알려주세요." });
     return;
   }
@@ -89,7 +87,7 @@ router.post("/", async (req, res) => {
   const { scope, count, difficulty } = parsed.data;
 
   try {
-    const questions = await generateQuiz(env.geminiApiKey, buildPrompt(scope, count, difficulty));
+    const questions = await generateQuiz(client, buildPrompt(scope, count, difficulty));
     if (questions.length === 0) {
       res.status(502).json({ error: "퀴즈를 만들지 못했어요. 다시 시도해주세요." });
       return;

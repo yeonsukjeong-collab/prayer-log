@@ -17,7 +17,7 @@ services:
         sync: false
       - key: LEADER_PASSWORD
         sync: false
-      - key: GEMINI_API_KEY
+      - key: ANTHROPIC_API_KEY
         sync: false
       - key: JWT_SECRET
         generateValue: true
