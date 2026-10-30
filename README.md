@@ -21,6 +21,7 @@ npm run install:all
 ```
 DATABASE_URL=postgresql://...   # Render Postgres의 External Database URL
 ACCESS_PASSWORD=...             # 목장원 전체가 사용할 공유 암호
+GEMINI_API_KEY=...              # 성경퀴즈용 Google Gemini API 키 (비워두면 성경퀴즈만 비활성)
 LEADER_PASSWORD=...             # 목자(정연석) 전용 암호 (비워두면 공유 암호 사용)
 JWT_SECRET=...                  # openssl rand -hex 32 로 생성
 CLIENT_URL=http://localhost:5173
@@ -65,6 +66,14 @@ npm run dev
 
 **정연석**, **김선경**이 웹관리자로 지정되어 있습니다(`server/prisma/seed.ts`의 `isAdmin: true`). 웹관리자로 로그인하면 "여러 명 기도제목 한번에 붙여넣기" 기능이 보입니다 — 일반 목장원에게는 이 기능이 표시되지 않습니다.
 
+### 성경퀴즈 탭
+
+예전 `bible_quiz_web`(Flask) 앱을 옮겨 온 탭입니다. 출제 범위·난이도·문제 수·참여자를 정하면 Google Gemini(`gemini-2.5-flash`)가 객관식 문제를 만들고, 문제 → 정답 확인(맞힌 사람 선택) → 최종 순위 순서로 진행합니다.
+
+- 서버의 `POST /api/bible-quiz`(`server/src/routes/bibleQuiz.ts`)가 Gemini를 호출합니다. API 키는 서버 환경변수 `GEMINI_API_KEY`에만 두고 브라우저에는 보내지 않습니다. 키가 없으면 성경퀴즈만 "설정되지 않음"으로 표시되고 앱의 다른 기능은 그대로 동작합니다.
+- 난이도는 쉬움·보통·어려움 세 가지 키로만 받고 프롬프트 문구는 서버에서 정합니다. Gemini가 만든 문제 중 보기가 4개가 아니거나 정답이 보기에 없는 문제는 빼고 보여줍니다.
+- 점수는 브라우저에서만 계산하고 DB에 저장하지 않습니다.
+
 ## 3. Render 배포
 
 이 저장소를 GitHub에 올린 뒤 Render 대시보드에서 "New Web Service"로 연결하거나, 저장소 루트의 `render.yaml`(Blueprint)을 이용해 한 번에 생성할 수 있습니다.
@@ -74,6 +83,7 @@ Render 서비스에 아래 환경변수를 설정하세요 (기존 Postgres 인�
 - `DATABASE_URL` — 기존 Render Postgres의 **External Database URL** (Internal Database URL은 웹 서비스와 DB가 같은 리전에 있을 때만 동작합니다. 웹 서비스를 DB와 같은 리전으로 만들었다면 Internal URL을 써도 됩니다.)
 - `ACCESS_PASSWORD` — 목장원 전체가 사용할 공유 암호
 - `LEADER_PASSWORD` — 목자(정연석) 전용 암호. 설정하면 목자는 공유 암호 대신 이 암호로만 로그인합니다.
+- `GEMINI_API_KEY` — 성경퀴즈용 Google Gemini API 키 (bible_quiz_web 서비스에 쓰던 키를 그대로 쓰면 됩니다)
 - `JWT_SECRET` (Blueprint 사용 시 자동 생성됨)
 - `CLIENT_URL` — 배포된 앱의 URL (예: `https://prayer-log.onrender.com`)
 

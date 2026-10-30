@@ -16,5 +16,7 @@ export const env = {
   // 목자 전용 암호. 설정하지 않으면 목자도 공유 암호로 로그인합니다.
   leaderPassword: process.env.LEADER_PASSWORD || undefined,
   jwtSecret: required("JWT_SECRET"),
+  // 성경퀴즈 문제를 만드는 Google Gemini API 키. 없으면 성경퀴즈만 "설정되지 않음"으로 표시됩니다.
+  geminiApiKey: process.env.GEMINI_API_KEY || undefined,
   clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
 };

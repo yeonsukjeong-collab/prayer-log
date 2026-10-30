@@ -64,6 +64,7 @@ export function NavBar() {
           <NavTab to="/prayers" icon="📖" label="릴레이 기도" />
           <NavTab to="/memories" icon="📷" label="사진" />
           <NavTab to="/church" icon="⛪" label="교회" />
+          <NavTab to="/quiz" icon="🔔" label="성경퀴즈" />
         </nav>
       </div>
     </header>

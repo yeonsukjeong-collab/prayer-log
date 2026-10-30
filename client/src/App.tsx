@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { BibleQuizPage } from "./pages/BibleQuizPage";
 import { ChurchPage } from "./pages/ChurchPage";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { NavBar } from "./components/NavBar";
@@ -27,6 +28,7 @@ function App() {
         <Route path="/prayers" element={<PrayerTextsPage />} />
         <Route path="/memories" element={<MemoriesPage />} />
         <Route path="/church" element={<ChurchPage />} />
+        <Route path="/quiz" element={<BibleQuizPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

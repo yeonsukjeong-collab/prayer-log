@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { env } from "./env.js";
 import authRouter from "./routes/auth.js";
 import benedictionRouter from "./routes/benediction.js";
+import bibleQuizRouter from "./routes/bibleQuiz.js";
 import bulletinRouter from "./routes/bulletin.js";
 import meditationsRouter from "./routes/meditations.js";
 import membersRouter from "./routes/members.js";
@@ -36,6 +37,7 @@ app.use("/api/benediction", benedictionRouter);
 app.use("/api/meditations", meditationsRouter);
 app.use("/api/bulletin", bulletinRouter);
 app.use("/api/praise", praiseRouter);
+app.use("/api/bible-quiz", bibleQuizRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
