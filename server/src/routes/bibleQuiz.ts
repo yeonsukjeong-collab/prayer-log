@@ -18,7 +18,7 @@ const DIFFICULTY_PROMPTS = {
   hard: "성경을 깊이 연구한 사람을 위한 꽤 어려운 지엽적인",
 } as const;
 
-const requestSchema = z.object({
+export const quizRequestSchema = z.object({
   scope: z.string().trim().min(1).max(50),
   count: z.number().int().min(1).max(10),
   difficulty: z.enum(["easy", "normal", "hard"]),
@@ -34,11 +34,11 @@ const questionSchema = z.object({
 // Claude가 이 형식의 JSON으로만 답하도록 구조화 출력(structured outputs)으로 지정합니다.
 const quizSchema = z.object({ questions: z.array(questionSchema) });
 
-type Question = z.infer<typeof questionSchema>;
+export type Question = z.infer<typeof questionSchema>;
 
-const client = env.anthropicApiKey ? new Anthropic({ apiKey: env.anthropicApiKey }) : null;
+export const quizClient = env.anthropicApiKey ? new Anthropic({ apiKey: env.anthropicApiKey }) : null;
 
-function buildPrompt(scope: string, count: number, difficulty: keyof typeof DIFFICULTY_PROMPTS) {
+export function buildPrompt(scope: string, count: number, difficulty: keyof typeof DIFFICULTY_PROMPTS) {
   return `너는 교회 소그룹 모임에서 성경 퀴즈를 출제하는 레크리에이션 강사야.
 성경의 '${scope}' 부분에서 객관식 퀴즈 ${count}개를 한국어로 내줘.
 난이도는 ${DIFFICULTY_PROMPTS[difficulty]} 수준으로 해줘.
@@ -48,7 +48,7 @@ function buildPrompt(scope: string, count: number, difficulty: keyof typeof DIFF
 - explanation에는 정답에 대한 짧은 해설과 근거가 되는 성경 구절(예: 창세기 3:1)을 적어줘.`;
 }
 
-async function generateQuiz(anthropic: Anthropic, prompt: string): Promise<Question[]> {
+export async function generateQuiz(anthropic: Anthropic, prompt: string): Promise<Question[]> {
   const response = await anthropic.beta.messages.parse({
     model: CLAUDE_MODEL,
     max_tokens: 16000,
@@ -74,12 +74,12 @@ async function generateQuiz(anthropic: Anthropic, prompt: string): Promise<Quest
 }
 
 router.post("/", async (req, res) => {
-  if (!client) {
+  if (!quizClient) {
     res.status(503).json({ error: "성경퀴즈가 아직 설정되지 않았어요. 관리자에게 알려주세요." });
     return;
   }
 
-  const parsed = requestSchema.safeParse(req.body);
+  const parsed = quizRequestSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "출제 범위와 문제 수를 확인해주세요." });
     return;
@@ -87,7 +87,7 @@ router.post("/", async (req, res) => {
   const { scope, count, difficulty } = parsed.data;
 
   try {
-    const questions = await generateQuiz(client, buildPrompt(scope, count, difficulty));
+    const questions = await generateQuiz(quizClient, buildPrompt(scope, count, difficulty));
     if (questions.length === 0) {
       res.status(502).json({ error: "퀴즈를 만들지 못했어요. 다시 시도해주세요." });
       return;
