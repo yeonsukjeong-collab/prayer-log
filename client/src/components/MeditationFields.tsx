@@ -1,4 +1,5 @@
-import { chapterUnit, NEW_TESTAMENT, OLD_TESTAMENT } from "../utils/bible";
+import { chapterUnit } from "../utils/bible";
+import { BibleBookOptions } from "./BibleBookOptions";
 import { RichTextEditor } from "./RichTextEditor";
 
 export interface MeditationDraft {
@@ -38,20 +39,7 @@ export function MeditationFields({ draft, onChange }: Props) {
       <div className="flex flex-wrap items-center gap-1.5 text-sm text-slate-600">
         <select value={draft.book} onChange={(e) => set("book", e.target.value)} className={inputClass}>
           <option value="">말씀서 선택</option>
-          <optgroup label="구약">
-            {OLD_TESTAMENT.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="신약">
-            {NEW_TESTAMENT.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </optgroup>
+          <BibleBookOptions />
         </select>
         <span className="flex items-center gap-1">
           <input

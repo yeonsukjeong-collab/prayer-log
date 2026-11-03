@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../../api/client";
+import { ScopeInput } from "./ScopeInput";
 import { useAuth } from "../../context/AuthContext";
 import type { Member } from "../../types";
 
@@ -90,16 +91,7 @@ export function LocalQuiz() {
 
       {screen === "setup" && (
         <section className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold text-slate-700">📖 출제 범위</span>
-            <input
-              value={scope}
-              onChange={(e) => setScope(e.target.value)}
-              maxLength={50}
-              placeholder="예: 창세기, 마태복음"
-              className={inputClass}
-            />
-          </label>
+          <ScopeInput value={scope} onChange={setScope} />
 
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-semibold text-slate-700">⭐ 퀴즈 난이도</span>

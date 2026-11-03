@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "../../api/client";
+import { ScopeInput } from "./ScopeInput";
 
 type Difficulty = "easy" | "normal" | "hard";
 
@@ -98,16 +99,7 @@ export function LiveQuiz() {
         <p className="text-center text-sm text-slate-500">
           퀴즈를 열면 목장원들이 각자 휴대폰으로 참가해 같은 문제를 함께 풀어요.
         </p>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-slate-700">📖 출제 범위</span>
-          <input
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-            maxLength={50}
-            placeholder="예: 창세기, 마태복음"
-            className={inputClass}
-          />
-        </label>
+        <ScopeInput value={scope} onChange={setScope} />
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-semibold text-slate-700">⭐ 난이도</span>
