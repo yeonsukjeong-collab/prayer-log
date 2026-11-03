@@ -213,8 +213,8 @@ router.post("/answer", async (req, res) => {
     res.status(403).json({ error: "먼저 퀴즈에 참가해주세요." });
     return;
   }
-  // 처음 고른 답만 인정합니다.
-  if (!g.answers.has(req.userId!)) {
+  // 정답 공개 전까지는 답을 바꿀 수 있고, 마지막에 고른 답과 그 시각을 인정합니다.
+  if (g.answers.get(req.userId!)?.option !== option) {
     g.answers.set(req.userId!, { option, elapsedMs: Date.now() - g.questionStartedAt });
     touch(g);
   }

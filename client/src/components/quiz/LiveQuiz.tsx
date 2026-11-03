@@ -202,7 +202,7 @@ export function LiveQuiz() {
               const mine = game.myAnswer === opt;
               const revealed = game.status === "revealed";
               const correct = revealed && opt === game.answer;
-              const canPick = game.status === "question" && game.joined && !game.myAnswer && !busy;
+              const canPick = game.status === "question" && game.joined && !mine && !busy;
               const style = revealed
                 ? correct
                   ? "border-emerald-400 bg-emerald-50 font-bold text-emerald-800"
@@ -235,7 +235,9 @@ export function LiveQuiz() {
 
           {game.status === "question" && game.joined && (
             <p className="text-center text-xs text-slate-400">
-              {game.myAnswer ? "답을 냈어요. 정답 공개를 기다려 주세요." : "답을 하나 골라 주세요. 처음 고른 답만 인정돼요."}
+              {game.myAnswer
+                ? "답을 냈어요. 정답 공개 전까지는 다른 보기를 눌러 바꿀 수 있어요."
+                : "답을 하나 골라 주세요. 정답 공개 전까지 바꿀 수 있어요."}
             </p>
           )}
 
