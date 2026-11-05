@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod/v4";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
-import { buildPrompt, generateQuiz, quizClient, quizRequestSchema, type Question } from "./bibleQuiz.js";
+import { createQuiz, quizClient, quizRequestSchema, type Question } from "./bibleQuiz.js";
 
 /**
  * 목장원이 각자 휴대폰으로 같은 문제를 동시에 푸는 "다 함께 풀기" 성경퀴즈입니다.
@@ -167,7 +167,7 @@ router.post("/create", async (req, res) => {
   game = g;
 
   try {
-    const questions = await generateQuiz(quizClient, buildPrompt(scope, count, difficulty));
+    const questions = await createQuiz(quizClient, scope, count, difficulty);
     if (game !== g) return; // 그 사이 목자가 게임을 끝냈습니다.
     if (questions.length === 0) throw new Error("No valid questions");
     g.questions = questions;
