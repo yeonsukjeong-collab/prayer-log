@@ -252,13 +252,13 @@ router.delete("/:id", async (req, res) => {
 let migrating = false;
 
 /**
- * DB에 들어 있는 예전 사진을 하나씩 드라이브에 복사하고 driveFileId를 채웁니다.
- * DB의 이미지 데이터는 지우지 않고 그대로 둡니다. 서버가 중간에 잠들어도 다음에 켜질 때 이어서 합니다.
+ * DB에 들어 있는 예전 사진을 하나씩 드라이브로 옮깁니다. 서버가 중간에 잠들어도 다음에 켜질 때 이어서 합니다.
+ * 드라이브에 올린 사진은 DB의 이미지 데이터를 비우고, 비운 것이 있으면 VACUUM FULL로 디스크 공간을 돌려받습니다.
  */
-export async function copyOldPhotosToDrive() {
+export async function moveOldPhotosToDrive() {
   if (!driveConfigured || migrating) return;
   migrating = true;
-  let copied = 0;
+  let moved = 0;
   try {
     for (;;) {
       const photo = await prisma.photo.findFirst({
@@ -268,12 +268,25 @@ export async function copyOldPhotosToDrive() {
       });
       if (!photo) break;
       const fileId = await uploadToDrive(photo.imageData, `${photo.id}.jpg`);
-      await prisma.photo.update({ where: { id: photo.id }, data: { driveFileId: fileId } });
-      copied += 1;
+      await prisma.photo.update({
+        where: { id: photo.id },
+        data: { driveFileId: fileId, imageData: "", thumbnailData: "" },
+      });
+      moved += 1;
     }
-    if (copied) console.log(`Copied ${copied} photos to Google Drive.`);
+    // 예전에 드라이브로 복사만 하고 DB에 남겨 두었던 이미지 데이터도 비웁니다.
+    const cleared = await prisma.photo.updateMany({
+      where: { driveFileId: { not: null }, OR: [{ imageData: { not: "" } }, { thumbnailData: { not: "" } }] },
+      data: { imageData: "", thumbnailData: "" },
+    });
+    if (moved || cleared.count) {
+      console.log(`Moved ${moved} photos to Google Drive and cleared ${cleared.count} copied photos from the DB.`);
+      // 사진 표를 잠깐 잠그지만, 이미지 데이터를 비운 뒤라 금방 끝납니다.
+      await prisma.$executeRawUnsafe('VACUUM FULL "prayer_log_photos"');
+      console.log("Vacuumed prayer_log_photos.");
+    }
   } catch (err) {
-    console.error("Copying photos to Google Drive stopped:", err);
+    console.error("Moving photos to Google Drive stopped:", err);
   } finally {
     migrating = false;
   }

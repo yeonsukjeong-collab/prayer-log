@@ -11,7 +11,7 @@ import liveQuizRouter from "./routes/liveQuiz.js";
 import bulletinRouter from "./routes/bulletin.js";
 import meditationsRouter from "./routes/meditations.js";
 import membersRouter from "./routes/members.js";
-import photosRouter, { copyOldPhotosToDrive } from "./routes/photos.js";
+import photosRouter, { moveOldPhotosToDrive } from "./routes/photos.js";
 import praiseRouter from "./routes/praise.js";
 import prayerRequestsRouter from "./routes/prayerRequests.js";
 import prayerTextsRouter from "./routes/prayerTexts.js";
@@ -59,5 +59,5 @@ if (env.nodeEnv === "production") {
 
 app.listen(env.port, () => {
   console.log(`Server listening on port ${env.port}`);
-  void copyOldPhotosToDrive();
+  void moveOldPhotosToDrive();
 });
