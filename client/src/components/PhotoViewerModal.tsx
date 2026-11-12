@@ -75,8 +75,11 @@ export function PhotoViewerModal({ photo, onClose, onDelete, onCommentCountChang
           <div className="flex items-center gap-3 text-xs">
             {detail ? (
               <a
-                href={detail.imageData}
-                download={downloadName}
+                href={detail.downloadUrl}
+                // 드라이브 사진은 다른 사이트라 download 속성이 무시되므로 새 창에서 받습니다.
+                {...(detail.downloadUrl.startsWith("data:")
+                  ? { download: downloadName }
+                  : { target: "_blank", rel: "noopener noreferrer" })}
                 className="text-slate-400 hover:text-brand-600"
               >
                 다운로드
@@ -101,9 +104,9 @@ export function PhotoViewerModal({ photo, onClose, onDelete, onCommentCountChang
         <div className="flex-1 overflow-y-auto">
           <div className="bg-slate-100">
             {detail ? (
-              <img src={detail.imageData} alt={photo.caption ?? "사진"} className="w-full" />
+              <img src={detail.imageData} referrerPolicy="no-referrer" alt={photo.caption ?? "사진"} className="w-full" />
             ) : (
-              <img src={photo.thumbnailData} alt={photo.caption ?? "사진"} className="w-full opacity-60" />
+              <img src={photo.thumbnailData} referrerPolicy="no-referrer" alt={photo.caption ?? "사진"} className="w-full opacity-60" />
             )}
           </div>
           {photo.caption && (

@@ -63,8 +63,11 @@ model Photo {
   id            String   @id @default(uuid())
   caption       String?
   photoDate     DateTime @default(now())
+  // 구글 드라이브로 옮기기 전의 사진은 여기에 이미지가 들어 있습니다. 드라이브에 올린 새 사진은 빈 문자열입니다.
   thumbnailData String   @db.Text
   imageData     String   @db.Text
+  // 구글 드라이브에 올린 사진 파일 ID. 있으면 화면에는 드라이브의 사진을 보여줍니다.
+  driveFileId   String?
   createdAt     DateTime @default(now())
 
   authorId String

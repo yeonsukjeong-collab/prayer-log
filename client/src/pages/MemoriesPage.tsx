@@ -130,6 +130,8 @@ export function MemoriesPage() {
                     >
                       <img
                         src={photo.thumbnailData}
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
                         alt={photo.caption ?? "사진"}
                         className="h-full w-full object-cover"
                       />

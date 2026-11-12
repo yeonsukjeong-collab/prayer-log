@@ -1,8 +1,10 @@
+import crypto from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
 import { endOfDayExclusive } from "../utils/date.js";
+import { driveConfigured, driveDownloadUrl, driveImageUrl, trashOnDrive, uploadToDrive } from "../utils/googleDrive.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -12,14 +14,33 @@ const photoSummarySelect = {
   caption: true,
   photoDate: true,
   thumbnailData: true,
+  driveFileId: true,
   createdAt: true,
   author: { select: { id: true, name: true } },
   _count: { select: { comments: true } },
 } as const;
 
-function withCommentCount<T extends { _count: { comments: number } }>(photo: T) {
+const THUMBNAIL_WIDTH = 400;
+const FULL_WIDTH = 1600;
+
+/** 드라이브로 옮긴 사진은 이미지 데이터 대신 드라이브 주소를 보내 줍니다. 화면은 둘 다 <img src>로 씁니다. */
+function withDriveUrls<T extends { driveFileId: string | null; thumbnailData: string; imageData?: string }>(photo: T) {
+  const { driveFileId, ...rest } = photo;
+  if (!driveFileId) return { ...rest, downloadUrl: rest.imageData };
+  return {
+    ...rest,
+    thumbnailData: driveImageUrl(driveFileId, THUMBNAIL_WIDTH),
+    ...(rest.imageData !== undefined ? { imageData: driveImageUrl(driveFileId, FULL_WIDTH) } : {}),
+    downloadUrl: driveDownloadUrl(driveFileId),
+  };
+}
+
+function withCommentCount<T extends { _count: { comments: number }; driveFileId: string | null; thumbnailData: string }>(
+  photo: T,
+) {
   const { _count, ...rest } = photo;
-  return { ...rest, commentCount: _count.comments };
+  const { downloadUrl: _, ...summary } = withDriveUrls(rest);
+  return { ...summary, commentCount: _count.comments };
 }
 
 const listQuerySchema = z.object({
@@ -69,7 +90,7 @@ router.get("/:id", async (req, res) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
-  res.json({ item: photo });
+  res.json({ item: withDriveUrls(photo) });
 });
 
 const commentSchema = z.object({
@@ -145,12 +166,25 @@ router.post("/", async (req, res) => {
     authorId = target.id;
   }
 
+  // 드라이브가 설정되어 있으면 사진은 드라이브에 두고 DB에는 파일 ID만 남깁니다.
+  let driveFileId: string | null = null;
+  if (driveConfigured) {
+    try {
+      driveFileId = await uploadToDrive(parsed.data.imageData, `${crypto.randomUUID()}.jpg`);
+    } catch (err) {
+      console.error(err);
+      res.status(502).json({ error: "사진을 구글 드라이브에 올리지 못했어요. 잠시 후 다시 시도해주세요." });
+      return;
+    }
+  }
+
   const item = await prisma.photo.create({
     data: {
       caption: parsed.data.caption,
       photoDate: parsed.data.photoDate ?? new Date(),
-      thumbnailData: parsed.data.thumbnailData,
-      imageData: parsed.data.imageData,
+      thumbnailData: driveFileId ? "" : parsed.data.thumbnailData,
+      imageData: driveFileId ? "" : parsed.data.imageData,
+      driveFileId,
       authorId,
     },
     select: photoSummarySelect,
@@ -173,7 +207,38 @@ router.delete("/:id", async (req, res) => {
   }
 
   await prisma.photo.delete({ where: { id: req.params.id } });
+  if (existing.driveFileId) await trashOnDrive(existing.driveFileId);
   res.status(204).send();
 });
+
+let migrating = false;
+
+/**
+ * DB에 들어 있는 예전 사진을 하나씩 드라이브에 복사하고 driveFileId를 채웁니다.
+ * DB의 이미지 데이터는 지우지 않고 그대로 둡니다. 서버가 중간에 잠들어도 다음에 켜질 때 이어서 합니다.
+ */
+export async function copyOldPhotosToDrive() {
+  if (!driveConfigured || migrating) return;
+  migrating = true;
+  let copied = 0;
+  try {
+    for (;;) {
+      const photo = await prisma.photo.findFirst({
+        where: { driveFileId: null, imageData: { not: "" } },
+        orderBy: { createdAt: "asc" },
+        select: { id: true, imageData: true },
+      });
+      if (!photo) break;
+      const fileId = await uploadToDrive(photo.imageData, `${photo.id}.jpg`);
+      await prisma.photo.update({ where: { id: photo.id }, data: { driveFileId: fileId } });
+      copied += 1;
+    }
+    if (copied) console.log(`Copied ${copied} photos to Google Drive.`);
+  } catch (err) {
+    console.error("Copying photos to Google Drive stopped:", err);
+  } finally {
+    migrating = false;
+  }
+}
 
 export default router;

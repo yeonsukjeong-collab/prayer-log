@@ -89,6 +89,7 @@ Render 서비스에 아래 환경변수를 설정하세요 (기존 Postgres 인�
 - `ACCESS_PASSWORD` — 목장원 전체가 사용할 공유 암호
 - `LEADER_PASSWORD` — 목자(정연석) 전용 암호. 설정하면 목자는 공유 암호 대신 이 암호로만 로그인합니다.
 - `ANTHROPIC_API_KEY` — 성경퀴즈용 Claude API 키 ([platform.claude.com](https://platform.claude.com)에서 발급)
+- `GOOGLE_DRIVE_SCRIPT_URL`, `GOOGLE_DRIVE_SCRIPT_SECRET` — 사진을 구글 드라이브에 저장하는 앱스 스크립트 주소와 비밀 키 (아래 "사진을 구글 드라이브에 저장하기" 참고). 비워두면 사진을 예전처럼 DB에 저장합니다.
 - `JWT_SECRET` (Blueprint 사용 시 자동 생성됨)
 - `CLIENT_URL` — 배포된 앱의 URL (예: `https://prayer-log.onrender.com`)
 
@@ -104,7 +105,26 @@ node server/dist/index.js
 
 > DB 테이블은 다른 서비스와 충돌하지 않도록 `prayer_log_` 접두사를 붙여 생성됩니다 (`prayer_log_members`, `prayer_log_prayer_requests`, `prayer_log_prayer_texts`, `prayer_log_photos`, `prayer_log_photo_comments`, `prayer_log_benediction`, `prayer_log_pastor_prayers`). 기존에 사용 중인 Postgres에 다른 앱의 테이블이 있어도 안전하게 함께 쓸 수 있습니다.
 >
-> 사진은 별도 저장소 없이 Postgres에 base64로 저장합니다. 브라우저에서 업로드 전 원본 크기와 무관하게 최대 1MB(사진 1장당)로 자동 리사이즈·압축합니다 (`client/src/utils/image.ts`). 사진이 많이 쌓이면 Render Postgres 무료 플랜의 1GB 저장 공간에 여유가 있는지 가끔 확인하세요.
+> 브라우저에서 업로드 전 원본 크기와 무관하게 사진을 최대 1MB(1장당)로 자동 리사이즈·압축합니다 (`client/src/utils/image.ts`).
+
+### 사진을 구글 드라이브에 저장하기
+
+DB 용량을 아끼려고 사진은 정연석 목자의 구글 드라이브("자카르타 목장 사진" 폴더)에 저장하고, DB에는 드라이브 파일 ID(`driveFileId`)만 남깁니다. 서버는 그 계정으로 배포한 앱스 스크립트(`google-apps-script/photoDrive.gs`)에 사진을 보내 저장합니다.
+
+- 드라이브의 사진은 "링크가 있는 사람은 보기 가능"으로 공유되고, 앱은 `drive.google.com/thumbnail` 주소로 사진을 보여줍니다.
+- 앱에서 사진을 지우면 드라이브의 파일은 휴지통으로 옮겨집니다.
+- 예전에 DB에 저장된 사진은 서버가 켜질 때마다 아직 옮기지 않은 것을 하나씩 드라이브에 복사합니다(`copyOldPhotosToDrive`). DB의 이미지 데이터는 지우지 않고 남겨둡니다.
+- 환경변수를 비워두면 예전처럼 사진을 DB에 저장합니다.
+
+설정 순서 (사진을 저장할 구글 계정으로 로그인한 상태에서):
+
+1. [script.google.com](https://script.google.com)에서 **새 프로젝트**를 만들고, `Code.gs` 내용을 지운 뒤 `google-apps-script/photoDrive.gs` 내용을 붙여 넣고 저장합니다.
+2. 위쪽 함수 목록에서 `setup`을 고르고 **실행**합니다. 권한 요청이 나오면 계정을 고르고, "Google에서 확인하지 않은 앱" 화면에서는 **고급 → (프로젝트 이름)(으)로 이동(안전하지 않음) → 허용**을 누릅니다.
+3. 실행 로그에 나온 `GOOGLE_DRIVE_SCRIPT_SECRET = ...` 값을 복사해 둡니다.
+4. **배포 → 새 배포 → 유형: 웹 앱**을 고르고, "다음 사용자 인증 정보로 실행: **나**", "액세스 권한이 있는 사용자: **모든 사용자**"로 배포합니다. 나온 **웹 앱 URL**(`https://script.google.com/macros/s/.../exec`)을 복사합니다.
+5. Render 서비스의 Environment에 `GOOGLE_DRIVE_SCRIPT_URL`(4번 URL)과 `GOOGLE_DRIVE_SCRIPT_SECRET`(3번 값)을 넣고 저장합니다. 서버가 다시 시작되면서 예전 사진 복사가 시작됩니다.
+
+스크립트 코드를 고친 뒤에는 **배포 → 배포 관리 → 수정(연필) → 버전: 새 버전**으로 다시 배포해야 반영됩니다(URL은 그대로 유지됩니다).
 
 ## 4. PWA 아이콘
 
