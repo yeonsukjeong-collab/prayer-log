@@ -46,7 +46,3 @@ export async function trashOnDrive(fileId: string) {
 export function driveImageUrl(fileId: string, width: number) {
   return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${width}`;
 }
-
-export function driveDownloadUrl(fileId: string) {
-  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
-}

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth } from "../auth/middleware.js";
 import { endOfDayExclusive } from "../utils/date.js";
-import { driveConfigured, driveDownloadUrl, driveImageUrl, trashOnDrive, uploadToDrive } from "../utils/googleDrive.js";
+import { driveConfigured, driveImageUrl, trashOnDrive, uploadToDrive } from "../utils/googleDrive.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -23,19 +23,28 @@ const photoSummarySelect = {
 const THUMBNAIL_WIDTH = 400;
 const FULL_WIDTH = 1600;
 
-/** 드라이브로 옮긴 사진은 이미지 데이터 대신 드라이브 주소를 보내 줍니다. 화면은 둘 다 <img src>로 씁니다. */
-function withDriveUrls<T extends { driveFileId: string | null; thumbnailData: string; imageData?: string }>(photo: T) {
+/** 우리 서버를 거쳐 드라이브 사진을 받는 주소입니다. 브라우저가 드라이브에 직접 가지 않아 PC·휴대폰 모두 같은 방식으로 보입니다. */
+function imageRoute(photoId: string, width: number, download = false) {
+  return `/api/photos/${photoId}/image?w=${width}${download ? "&download=1" : ""}`;
+}
+
+/** 드라이브로 옮긴 사진은 이미지 데이터 대신 이미지 주소를 보내 줍니다. 화면은 둘 다 <img src>로 씁니다. */
+function withDriveUrls<
+  T extends { id: string; driveFileId: string | null; thumbnailData: string; imageData?: string },
+>(photo: T) {
   const { driveFileId, ...rest } = photo;
   if (!driveFileId) return { ...rest, downloadUrl: rest.imageData };
   return {
     ...rest,
-    thumbnailData: driveImageUrl(driveFileId, THUMBNAIL_WIDTH),
-    ...(rest.imageData !== undefined ? { imageData: driveImageUrl(driveFileId, FULL_WIDTH) } : {}),
-    downloadUrl: driveDownloadUrl(driveFileId),
+    thumbnailData: imageRoute(photo.id, THUMBNAIL_WIDTH),
+    ...(rest.imageData !== undefined ? { imageData: imageRoute(photo.id, FULL_WIDTH) } : {}),
+    downloadUrl: imageRoute(photo.id, FULL_WIDTH, true),
   };
 }
 
-function withCommentCount<T extends { _count: { comments: number }; driveFileId: string | null; thumbnailData: string }>(
+function withCommentCount<
+  T extends { _count: { comments: number }; id: string; driveFileId: string | null; thumbnailData: string },
+>(
   photo: T,
 ) {
   const { _count, ...rest } = photo;
@@ -91,6 +100,35 @@ router.get("/:id", async (req, res) => {
     return;
   }
   res.json({ item: withDriveUrls(photo) });
+});
+
+const imageQuerySchema = z.object({
+  w: z.coerce.number().int().min(100).max(FULL_WIDTH).default(FULL_WIDTH),
+  download: z.literal("1").optional(),
+});
+
+router.get("/:id/image", async (req, res) => {
+  const query = imageQuerySchema.safeParse(req.query);
+  const photo = await prisma.photo.findUnique({ where: { id: req.params.id }, select: { driveFileId: true } });
+  if (!query.success || !photo?.driveFileId) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  try {
+    const upstream = await fetch(driveImageUrl(photo.driveFileId, query.data.w), {
+      signal: AbortSignal.timeout(30_000),
+    });
+    const type = upstream.headers.get("content-type") ?? "";
+    if (!upstream.ok || !type.startsWith("image/")) throw new Error(`Drive image HTTP ${upstream.status} (${type})`);
+    res.setHeader("Content-Type", type);
+    // 같은 사진은 바뀌지 않으므로 브라우저에 오래 저장해 두게 합니다.
+    res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
+    if (query.data.download) res.setHeader("Content-Disposition", `attachment; filename="photo-${req.params.id}.jpg"`);
+    res.send(Buffer.from(await upstream.arrayBuffer()));
+  } catch (err) {
+    console.error(err);
+    res.status(502).json({ error: "사진을 불러오지 못했어요." });
+  }
 });
 
 const commentSchema = z.object({

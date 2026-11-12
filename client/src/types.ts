@@ -55,7 +55,7 @@ export interface PhotoComment {
 }
 
 export interface PhotoDetail extends PhotoSummary {
-  /** 예전 사진은 data URL, 구글 드라이브로 옮긴 사진은 드라이브 이미지 주소입니다. */
+  /** 예전 사진은 data URL, 구글 드라이브로 옮긴 사진은 서버를 거치는 이미지 주소입니다. */
   imageData: string;
   downloadUrl: string;
   comments: PhotoComment[];
